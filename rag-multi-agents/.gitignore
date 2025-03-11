@@ -1,0 +1,27 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+build/
+dist/
+
+# Outils
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Secrets
+.env
+
+# Données (les documents sources ne sont pas versionnés)
+data/raw/*
+!data/raw/.gitkeep
+data/processed/
+chroma_data/
+
+# IDE / OS
+.vscode/
+.idea/
+.DS_Store
