@@ -1,0 +1,11 @@
+services:
+  chroma:
+    image: chromadb/chroma:1.5.9
+    ports:
+      - "8001:8000"
+    volumes:
+      - chroma_data:/data
+    restart: unless-stopped
+
+volumes:
+  chroma_data:
