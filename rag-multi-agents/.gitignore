@@ -19,7 +19,7 @@ htmlcov/
 data/raw/*
 !data/raw/.gitkeep
 data/processed/
-chroma_data/
+data/chroma/
 
 # IDE / OS
 .vscode/

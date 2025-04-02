@@ -11,16 +11,21 @@ dependencies = [
     "langchain-community>=0.4",
     "langgraph>=1.2",
     "langchain-chroma>=1.1",
+    "langchain-ollama>=1.1",
+    "langchain-text-splitters>=1.0",
+    "numpy>=2.0",
     "chromadb>=1.5",
     "fastapi>=0.141",
     "uvicorn[standard]>=0.54",
     "pydantic-settings>=2.15",
 ]
 
+[project.scripts]
+rag = "rag.cli:main"
+
 [project.optional-dependencies]
 anthropic = ["langchain-anthropic>=1.7"]
 openai = ["langchain-openai>=1.6"]
-ollama = ["langchain-ollama>=1.1"]
 
 [dependency-groups]
 dev = [
