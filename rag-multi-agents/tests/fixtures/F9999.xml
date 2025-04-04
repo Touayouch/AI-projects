@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Publication xmlns:dc="http://purl.org/dc/elements/1.1/" ID="F9999" type="Fiche d'information conditionnée" dateDerniereModificationImportante="2025-01-15T00:00:00" spUrl="https://www.service-public.gouv.fr/particuliers/vosdroits/F9999">
+  <dc:title>Congés payés du salarié</dc:title>
+  <dc:description>Un salarié a droit à des congés payés.</dc:description>
+  <Theme ID="N19806"><Titre>Travail - Formation</Titre></Theme>
+  <SousThemePere ID="N19964">Congés</SousThemePere>
+  <Introduction><Texte><Paragraphe>Le salarié a droit à des <MiseEnEvidence>congés payés</MiseEnEvidence>.</Paragraphe></Texte></Introduction>
+  <Texte>
+    <Chapitre>
+      <Titre><Paragraphe>Combien de jours ?</Paragraphe></Titre>
+      <Paragraphe>Le salarié acquiert <MiseEnEvidence>2,5 jours</MiseEnEvidence> par mois.</Paragraphe>
+      <Liste type="puce"><Item><Paragraphe>Temps plein</Paragraphe></Item><Item><Paragraphe>Temps partiel</Paragraphe></Item></Liste>
+      <Attention><Titre>Attention</Titre><Paragraphe>En cas de maladie, la limite est de 2 jours.</Paragraphe></Attention>
+      <BlocCas affichage="radio">
+        <Cas><Titre>Apprenti</Titre><TitreRiche><Paragraphe>Apprenti</Paragraphe></TitreRiche><Paragraphe>Un apprenti a droit à 5 semaines.</Paragraphe></Cas>
+      </BlocCas>
+    </Chapitre>
+    <Chapitre>
+      <Titre><Paragraphe>Montants</Paragraphe></Titre>
+      <Tableau>
+        <TitreRiche><Paragraphe>Indemnités</Paragraphe></TitreRiche>
+        <Colonne largeur="50" type="normal"/>
+        <Rangée type="header"><Cellule><Paragraphe>Situation</Paragraphe></Cellule><Cellule><Paragraphe>Montant</Paragraphe></Cellule></Rangée>
+        <Rangée type="normal"><Cellule><Paragraphe>Cas général</Paragraphe></Cellule><Cellule><Paragraphe><Valeur>100 €</Valeur></Paragraphe></Cellule></Rangée>
+      </Tableau>
+      <OuSAdresser ID="R1"><Titre>Inspection du travail</Titre><PivotLocal>ddets</PivotLocal></OuSAdresser>
+    </Chapitre>
+  </Texte>
+</Publication>

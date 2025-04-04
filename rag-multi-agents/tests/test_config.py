@@ -3,7 +3,7 @@ from rag.config import Settings
 
 def test_defaults():
     settings = Settings(_env_file=None)
-    assert settings.llm_provider in {"anthropic", "openai", "ollama"}
+    assert settings.llm_provider == "ollama"
     assert settings.chroma_port == 8001
 
 
