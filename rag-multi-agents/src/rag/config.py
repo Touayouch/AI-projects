@@ -36,6 +36,13 @@ class Settings(BaseSettings):
     chunk_min_chars: int = 200
     chunk_breakpoint_percentile: float = 90.0
 
+    # Retrieval hybride
+    retrieval_k: int = 5
+    hybrid_fetch_k: int = 30
+    rrf_k: int = 60
+    dense_weight: float = 1.0
+    sparse_weight: float = 1.0
+
     # ChromaDB : "local" (fichiers dans chroma_persist_dir) ou "http" (docker compose)
     chroma_mode: Literal["local", "http"] = "local"
     chroma_persist_dir: Path = Path("data/chroma")
