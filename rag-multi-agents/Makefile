@@ -1,4 +1,4 @@
-.PHONY: install lint format test corpus models ingest ingest-recursive api chroma-up chroma-down
+.PHONY: install lint format test corpus models ingest ingest-recursive eval-retrieval api chroma-up chroma-down
 
 install:
 	uv sync
@@ -18,7 +18,8 @@ corpus:
 	uv run rag download
 
 models:
-	ollama pull bge-m3
+	# Repli sur HuggingFace si le registre Ollama est inaccessible
+	ollama pull bge-m3 || (ollama pull hf.co/gpustack/bge-m3-GGUF:Q8_0 && ollama cp hf.co/gpustack/bge-m3-GGUF:Q8_0 bge-m3)
 	ollama pull qwen3:4b
 
 ingest:
@@ -26,6 +27,9 @@ ingest:
 
 ingest-recursive:
 	uv run rag ingest --strategy recursive
+
+eval-retrieval:
+	uv run rag eval-retrieval --strategy semantic
 
 api:
 	uv run uvicorn rag.api.main:app --reload --port 8080

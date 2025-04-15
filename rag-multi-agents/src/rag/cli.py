@@ -8,13 +8,16 @@ import argparse
 import json
 import logging
 import statistics
+from pathlib import Path
 
 from rag.agents.chunking import ChunkingAgent
 from rag.agents.ingestion import IngestionAgent
 from rag.config import get_settings
+from rag.evaluation.retrieval import evaluate, load_questions, report_table
 from rag.indexing import get_vectorstore, index_chunks, save_chunks
 from rag.ingestion.corpus import download_corpus
 from rag.models import get_embeddings
+from rag.retrieval.factory import build_retrievers
 
 logger = logging.getLogger("rag")
 
@@ -68,6 +71,41 @@ def cmd_ingest(args: argparse.Namespace) -> None:
         index_chunks(get_vectorstore(settings, embeddings, collection), chunks)
 
 
+def cmd_search(args: argparse.Namespace) -> None:
+    settings = get_settings()
+    strategy = args.strategy or settings.chunk_strategy
+    retriever = build_retrievers(settings, strategy, [args.method])[args.method]
+    for rank, (doc, score) in enumerate(retriever.search(args.query, k=args.k), start=1):
+        print(f"\n[{rank}] {doc.metadata['chunk_id']}  score={score:.4f}  {doc.metadata['url']}")
+        print(doc.page_content[:400])
+
+
+def cmd_eval_retrieval(args: argparse.Namespace) -> None:
+    settings = get_settings()
+    strategy = args.strategy or settings.chunk_strategy
+    questions = load_questions(args.questions)
+    retrievers = build_retrievers(settings, strategy, args.methods)
+
+    results = {name: evaluate(r, questions) for name, r in retrievers.items()}
+    by_type = {
+        f"{name} ({qtype})": evaluate(r, [q for q in questions if q.type == qtype])
+        for qtype in sorted({q.type for q in questions})
+        for name, r in retrievers.items()
+    }
+
+    report = (
+        f"# Évaluation du retrieval — chunking `{strategy}`\n\n"
+        f"{len(questions)} questions annotées (`{args.questions}`), pertinence au niveau fiche.\n\n"
+        f"## Global\n\n{report_table(results)}\n\n"
+        f"## Par type de question\n\n{report_table(by_type)}\n"
+    )
+    print(report)
+    output = Path("eval/results") / f"retrieval_{strategy}.md"
+    output.parent.mkdir(parents=True, exist_ok=True)
+    output.write_text(report, encoding="utf-8")
+    logger.info("Rapport écrit dans %s", output)
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(prog="rag")
     sub = parser.add_subparsers(required=True)
@@ -80,10 +118,31 @@ def main() -> None:
     ingest.add_argument("--no-index", action="store_true", help="Ne pas indexer dans ChromaDB")
     ingest.set_defaults(func=cmd_ingest)
 
+    search = sub.add_parser("search", help="Recherche dans le corpus indexé")
+    search.add_argument("query")
+    search.add_argument("--method", choices=["dense", "sparse", "hybrid"], default="hybrid")
+    search.add_argument("--strategy", choices=["semantic", "recursive"])
+    search.add_argument("-k", type=int, default=5)
+    search.set_defaults(func=cmd_search)
+
+    evaluation = sub.add_parser("eval-retrieval", help="Compare les méthodes de retrieval")
+    evaluation.add_argument("--strategy", choices=["semantic", "recursive"])
+    evaluation.add_argument(
+        "--methods",
+        nargs="+",
+        choices=["dense", "sparse", "hybrid"],
+        default=["dense", "sparse", "hybrid"],
+    )
+    evaluation.add_argument(
+        "--questions", type=Path, default=Path("eval/retrieval_questions.jsonl")
+    )
+    evaluation.set_defaults(func=cmd_eval_retrieval)
+
     args = parser.parse_args()
     logging.basicConfig(
         level=get_settings().log_level, format="%(asctime)s %(levelname)s %(name)s | %(message)s"
     )
+    logging.getLogger("httpx").setLevel(logging.WARNING)
     args.func(args)
 
 

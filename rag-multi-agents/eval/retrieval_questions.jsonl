@@ -1,0 +1,44 @@
+{"question": "Combien de jours de vacances payées un employé du privé acquiert-il chaque mois ?", "doc_ids": ["F2258"], "type": "paraphrase"}
+{"question": "J'ai droit à combien de jours de congé quand je me pacse ?", "doc_ids": ["F34154"], "type": "paraphrase"}
+{"question": "Mon employeur doit-il me donner un jour pour déménager ?", "doc_ids": ["F33902"], "type": "paraphrase"}
+{"question": "Je suis tombé malade, puis-je reporter mes jours de congés payés ?", "doc_ids": ["F2262"], "type": "paraphrase"}
+{"question": "Combien de jours de congé a le père à la naissance de son bébé ?", "doc_ids": ["F3156"], "type": "paraphrase"}
+{"question": "Quelle est la durée du congé de proche aidant ?", "doc_ids": ["F16920"], "type": "lexical"}
+{"question": "Quelles conditions pour prendre un congé sabbatique ?", "doc_ids": ["F2381"], "type": "lexical"}
+{"question": "Dans quels cas un CDD est-il requalifié en CDI ?", "doc_ids": ["F34572"], "type": "lexical"}
+{"question": "Qu'est-ce que le CD2I ?", "doc_ids": ["F2247"], "type": "lexical"}
+{"question": "Est-ce que je touche une indemnité à la fin de mon contrat à durée déterminée ?", "doc_ids": ["F803"], "type": "paraphrase"}
+{"question": "Comment fonctionne la PPV ?", "doc_ids": ["F35235"], "type": "lexical"}
+{"question": "Dois-je respecter un délai avant de partir si je quitte mon poste de mon plein gré ?", "doc_ids": ["F2883"], "type": "paraphrase"}
+{"question": "Si je quitte volontairement mon travail, est-ce que je peux être indemnisé par l'assurance chômage ?", "doc_ids": ["F89"], "type": "paraphrase"}
+{"question": "Quelle est la durée du préavis de licenciement ?", "doc_ids": ["F2855"], "type": "lexical"}
+{"question": "Comment compter les années passées dans l'entreprise pour calculer l'indemnité de licenciement ?", "doc_ids": ["F371"], "type": "paraphrase"}
+{"question": "Qui peut m'accompagner à l'entretien avant licenciement s'il n'y a pas de représentant du personnel dans l'entreprise ?", "doc_ids": ["F2857", "F13782"], "type": "paraphrase"}
+{"question": "Mes jours de vacances non pris me sont-ils payés quand je quitte l'entreprise ?", "doc_ids": ["F24661"], "type": "paraphrase"}
+{"question": "Quelle indemnité si je suis licencié parce que le médecin du travail m'a déclaré inapte ?", "doc_ids": ["F31225"], "type": "paraphrase"}
+{"question": "Mon patron peut-il me forcer à partir à la retraite ?", "doc_ids": ["F13966"], "type": "paraphrase"}
+{"question": "Qu'est-ce que la surcote pour la retraite ?", "doc_ids": ["F19643"], "type": "lexical"}
+{"question": "Peut-on racheter des trimestres de retraite ?", "doc_ids": ["F15675"], "type": "lexical"}
+{"question": "Au bout de combien d'heures de travail ai-je droit à une pause ?", "doc_ids": ["F18205"], "type": "paraphrase"}
+{"question": "Mon employeur peut-il refuser que je travaille depuis chez moi ?", "doc_ids": ["F13851"], "type": "paraphrase"}
+{"question": "Comment est mis en place le travail de nuit dans une entreprise ?", "doc_ids": ["F35344"], "type": "lexical"}
+{"question": "Une femme enceinte peut-elle continuer à travailler la nuit ?", "doc_ids": ["F2691"], "type": "paraphrase"}
+{"question": "Suis-je obligée d'annoncer que j'attends un enfant à mon patron ?", "doc_ids": ["F1144"], "type": "paraphrase"}
+{"question": "Comment fonctionne le C2P ?", "doc_ids": ["F15504"], "type": "lexical"}
+{"question": "Dans quels cas contacter l'inspection du travail ?", "doc_ids": ["F107"], "type": "lexical"}
+{"question": "Dois-je payer l'ordinateur de ma boîte que j'ai cassé ?", "doc_ids": ["F31851"], "type": "paraphrase"}
+{"question": "Comment faire un bilan de compétences quand on est salarié du privé ?", "doc_ids": ["F3087"], "type": "lexical"}
+{"question": "Comment faire reconnaître mon expérience professionnelle pour obtenir un diplôme ?", "doc_ids": ["F2401"], "type": "paraphrase"}
+{"question": "Quel est le salaire d'un apprenti ?", "doc_ids": ["F2918"], "type": "lexical"}
+{"question": "Dans quels cas France Travail peut-il me radier ?", "doc_ids": ["F1638"], "type": "lexical"}
+{"question": "France Travail me réclame un trop-perçu, que faire ?", "doc_ids": ["F31592"], "type": "lexical"}
+{"question": "Quelles sont les conditions de ressources de la complémentaire santé solidaire ?", "doc_ids": ["F10027"], "type": "lexical"}
+{"question": "Comment éviter d'avancer l'argent chez le médecin ?", "doc_ids": ["F167"], "type": "paraphrase"}
+{"question": "Que veulent dire les chiffres de mon numéro de sécu ?", "doc_ids": ["F33078"], "type": "paraphrase"}
+{"question": "La mutuelle d'entreprise est-elle obligatoire pour le salarié ?", "doc_ids": ["F20739"], "type": "lexical"}
+{"question": "Existe-t-il une aide pour payer la maison de retraite médicalisée de mon père ?", "doc_ids": ["F2444"], "type": "paraphrase"}
+{"question": "Un enfant de 22 ans est-il considéré à charge pour le RSA ?", "doc_ids": ["F20199"], "type": "lexical"}
+{"question": "Quelles tâches sont interdites à un ado de 16 ans en stage dans une entreprise ?", "doc_ids": ["F2344"], "type": "paraphrase"}
+{"question": "L'entreprise doit-elle fournir un endroit pour que les salariés se changent ?", "doc_ids": ["F1738"], "type": "paraphrase"}
+{"question": "C'est quoi le CEJ ?", "doc_ids": ["F32700"], "type": "lexical"}
+{"question": "Quelle est la durée maximale d'une mission d'intérim ?", "doc_ids": ["F11215"], "type": "lexical"}
