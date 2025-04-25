@@ -12,8 +12,9 @@ class Settings(BaseSettings):
 
     # LLM
     llm_provider: Literal["ollama", "anthropic", "openai"] = "ollama"
-    llm_model: str = "qwen3:4b"
+    llm_model: str = "qwen3-instruct:4b"
     llm_temperature: float = 0.0
+    llm_num_ctx: int = 8192
     ollama_base_url: str = "http://localhost:11434"
 
     # Embeddings (servis par Ollama)
@@ -42,6 +43,11 @@ class Settings(BaseSettings):
     rrf_k: int = 60
     dense_weight: float = 1.0
     sparse_weight: float = 1.0
+
+    # Graphe multi-agents
+    max_retrieval_attempts: int = 2  # recherche initiale + 1 reformulation
+    max_generation_attempts: int = 2  # génération initiale + 1 correction
+    grader_chunk_chars: int = 800  # extrait de chunk montré au grader
 
     # ChromaDB : "local" (fichiers dans chroma_persist_dir) ou "http" (docker compose)
     chroma_mode: Literal["local", "http"] = "local"

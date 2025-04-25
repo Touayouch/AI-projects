@@ -8,15 +8,17 @@ import argparse
 import json
 import logging
 import statistics
+import time
 from pathlib import Path
 
 from rag.agents.chunking import ChunkingAgent
 from rag.agents.ingestion import IngestionAgent
 from rag.config import get_settings
 from rag.evaluation.retrieval import evaluate, load_questions, report_table
+from rag.graph import GraphConfig, build_graph
 from rag.indexing import get_vectorstore, index_chunks, save_chunks
 from rag.ingestion.corpus import download_corpus
-from rag.models import get_embeddings
+from rag.models import get_embeddings, get_llm
 from rag.retrieval.factory import build_retrievers
 
 logger = logging.getLogger("rag")
@@ -106,6 +108,46 @@ def cmd_eval_retrieval(args: argparse.Namespace) -> None:
     logger.info("Rapport écrit dans %s", output)
 
 
+def make_graph(strategy: str | None = None, with_retriever: bool = True):
+    settings = get_settings()
+    strategy = strategy or settings.chunk_strategy
+    retriever = (
+        build_retrievers(settings, strategy, ["hybrid"])["hybrid"] if with_retriever else None
+    )
+    config = GraphConfig(
+        k=settings.retrieval_k,
+        max_retrieval_attempts=settings.max_retrieval_attempts,
+        max_generation_attempts=settings.max_generation_attempts,
+        grader_chunk_chars=settings.grader_chunk_chars,
+    )
+    return build_graph(get_llm(settings), retriever, config)
+
+
+def cmd_ask(args: argparse.Namespace) -> None:
+    graph = make_graph(args.strategy)
+    start = time.perf_counter()
+    state = graph.invoke({"question": args.question})
+    elapsed = time.perf_counter() - start
+
+    if args.verbose:
+        print("Étapes :")
+        for step in state["steps"]:
+            print(f"  - {step}")
+        print()
+    print(state["answer"])
+    if state["sources"]:
+        print("\nSources :")
+        for source in state["sources"]:
+            print(
+                f"  [{source['n']}] {source['title']} — {source['section']}\n      {source['url']}"
+            )
+    print(f"\n(statut : {state['status']}, {elapsed:.0f} s)")
+
+
+def cmd_graph(args: argparse.Namespace) -> None:
+    print(make_graph(with_retriever=False).get_graph().draw_mermaid())
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(prog="rag")
     sub = parser.add_subparsers(required=True)
@@ -137,6 +179,14 @@ def main() -> None:
         "--questions", type=Path, default=Path("eval/retrieval_questions.jsonl")
     )
     evaluation.set_defaults(func=cmd_eval_retrieval)
+
+    ask = sub.add_parser("ask", help="Pose une question au système multi-agents")
+    ask.add_argument("question")
+    ask.add_argument("--strategy", choices=["semantic", "recursive"])
+    ask.add_argument("-v", "--verbose", action="store_true", help="Affiche les étapes du graphe")
+    ask.set_defaults(func=cmd_ask)
+
+    sub.add_parser("graph", help="Diagramme Mermaid du graphe").set_defaults(func=cmd_graph)
 
     args = parser.parse_args()
     logging.basicConfig(

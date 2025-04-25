@@ -1,4 +1,4 @@
-"""Accès aux modèles (embeddings, et LLM à partir de la phase 3)."""
+"""Accès aux modèles : embeddings et LLM."""
 
 import hashlib
 import json
@@ -8,7 +8,8 @@ import time
 from pathlib import Path
 
 from langchain_core.embeddings import Embeddings
-from langchain_ollama import OllamaEmbeddings
+from langchain_core.language_models import BaseChatModel
+from langchain_ollama import ChatOllama, OllamaEmbeddings
 
 from rag.config import Settings
 
@@ -101,4 +102,25 @@ def get_embeddings(settings: Settings) -> Embeddings:
         model_name=settings.embedding_model,
         cache_path=settings.processed_dir / "embeddings_cache.sqlite",
         batch_size=settings.embedding_batch_size,
+    )
+
+
+def get_llm(settings: Settings) -> BaseChatModel:
+    if settings.llm_provider == "ollama":
+        return ChatOllama(
+            model=settings.llm_model,
+            base_url=settings.ollama_base_url,
+            temperature=settings.llm_temperature,
+            num_ctx=settings.llm_num_ctx,
+            # Sans cela, Ollama considère Qwen3 comme un modèle à raisonnement et n'applique
+            # pas la contrainte JSON des sorties structurées (et la latence explose sur CPU).
+            reasoning=False,
+        )
+    # Fournisseurs API : nécessitent l'extra correspondant (uv sync --extra anthropic)
+    from langchain.chat_models import init_chat_model
+
+    return init_chat_model(
+        settings.llm_model,
+        model_provider=settings.llm_provider,
+        temperature=settings.llm_temperature,
     )
