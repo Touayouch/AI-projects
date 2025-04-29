@@ -22,7 +22,7 @@ mettre en évidence l'intérêt d'un retrieval hybride dense + lexical.
 - [x] Phase 0 : setup du projet
 - [x] Phase 1 : ingestion et chunking sémantique
 - [x] Phase 2 : retrieval hybride (dense + BM25 + fusion RRF)
-- [ ] Phase 3 : orchestration multi-agents (LangGraph)
+- [x] Phase 3 : orchestration multi-agents (LangGraph)
 - [ ] Phase 4 : évaluation RAGAS et remédiation hors-sujet
 - [ ] Phase 5 : API FastAPI et Docker
 - [ ] Phase 6 : documentation, démo
@@ -95,17 +95,85 @@ make eval-retrieval
 uv run rag search "Combien de jours de congé pour un Pacs ?"
 ```
 
+## Orchestration multi-agents (LangGraph)
+
+```mermaid
+graph TD
+    START([question]) --> analyze
+    analyze -- hors périmètre --> out_of_scope([refus poli])
+    analyze --> retrieve
+    retrieve --> grade
+    grade -- chunks utiles --> generate
+    grade -- aucun chunk utile --> rewrite
+    rewrite --> retrieve
+    grade -- tentatives épuisées --> no_answer([pas de réponse])
+    generate --> validate
+    validate -- rejetée --> generate
+    validate -- validée / tentatives épuisées --> finalize([réponse + sources])
+```
+
+| Agent | Rôle | Sortie |
+| --- | --- | --- |
+| **QueryAgent** (`analyze`, `rewrite`) | Filtre les questions hors périmètre (tolérant au langage familier) ; reformule la requête seulement si rien de pertinent n'est trouvé | `QueryAnalysis` (JSON structuré) |
+| **Retriever** (`retrieve`) | Recherche hybride dense + BM25 (phase 2) | top 5 chunks |
+| **DocumentGrader** (`grade`) | Écarte les chunks non pertinents (un seul appel LLM pour tous les chunks) | indices des chunks utiles |
+| **Generator** (`generate`) | Rédige la réponse à partir des seuls chunks retenus, avec citations `[n]` | texte |
+| **AnswerValidator** (`validate`) | Vérifie la fidélité aux sources et la pertinence ; en cas d'échec, son retour est renvoyé au générateur | `Validation` |
+
+Garde-fous :
+- 1 reformulation et 1 régénération au maximum (pas de boucle infinie). Si la réponse reste
+  rejetée, le système renvoie les fiches sources plutôt qu'une réponse non fiable
+  (statut `unverified`).
+- La première recherche utilise la question d'origine : avec un modèle de 4B, une
+  reformulation systématique déviait du sujet (« pacs » reformulé en « congé de maternité »).
+- Chaque nœud est relancé jusqu'à 3 fois en cas d'erreur passagère (serveur Ollama
+  indisponible, JSON mal formé).
+
+Le LLM par défaut est **Qwen3-4B-Instruct-2507** (quantifié Q4_K_M) via Ollama, en local et
+sans GPU. La variante *Instruct* répond directement, sans phase de raisonnement (*thinking*)
+qui multiplierait la latence sur CPU. Les sorties structurées (Pydantic + JSON schema) fiabilisent les
+décisions de routage d'un petit modèle.
+
+Exemple (`uv run rag ask "Dois-je payer l'ordinateur de ma boîte que j'ai cassé ?" -v`) :
+
+```
+Étapes :
+  - analyze: in_scope=True
+  - retrieve: 5 chunks
+  - grade: 2/5 chunks pertinents
+  - generate: tentative 1
+  - validate: grounded=True answers_question=True
+
+Non, vous n'avez pas à payer l'ordinateur [...] l'employeur ne peut pas demander au salarié de
+rembourser les dégradations ou la perte du matériel s'il a été cassé ou perdu involontairement
+[1]. [...] Les sanctions financières, comme le retrait du prix de l'objet sur le salaire, sont
+interdites [2].
+
+Sources :
+  [1] Un salarié doit-il rembourser du matériel de l'entreprise cassé ou perdu ?
+  [2] Que peut faire un particulier employeur si son salarié casse un objet ?
+```
+
+Latence sur CPU (Ryzen 5, sans GPU) : 60 à 120 s par question (4 appels au LLM), quelques
+secondes pour une question hors périmètre.
+
+```bash
+uv run rag ask "Combien de jours de congé pour un Pacs ?" --verbose
+uv run rag graph   # diagramme Mermaid généré depuis le code
+```
+
 ## Structure
 
 ```
 src/rag/
-├── agents/        # agents spécialisés (ingestion, chunking...)
+├── agents/        # agents spécialisés (ingestion, chunking, query, grader, generator, validator)
 ├── ingestion/     # téléchargement du corpus, parsing XML
 ├── retrieval/     # dense (ChromaDB), sparse (BM25), hybride (RRF)
 ├── evaluation/    # métriques de retrieval (hit@k, MRR)
 ├── api/           # FastAPI
+├── graph.py       # graphe LangGraph (orchestration des agents)
 ├── indexing.py    # ChromaDB + export JSONL
-├── models.py      # embeddings Ollama + cache SQLite
+├── models.py      # LLM et embeddings Ollama + cache SQLite
 ├── cli.py         # commande `rag`
 └── config.py      # configuration (.env)
 eval/              # questions annotées et rapports d'évaluation
@@ -119,7 +187,7 @@ Prérequis : Python 3.11+, [uv](https://docs.astral.sh/uv/), [Ollama](https://ol
 ```bash
 cp .env.example .env
 make install
-make models             # télécharge bge-m3 (embeddings) et qwen3:4b (LLM)
+make models             # télécharge bge-m3 (embeddings) et Qwen3-4B-Instruct (LLM)
 make corpus             # télécharge et filtre les fiches dans data/raw/
 make ingest             # ingestion + chunking sémantique + indexation ChromaDB (~3 h sur CPU)
 make ingest-recursive   # baseline pour comparaison
