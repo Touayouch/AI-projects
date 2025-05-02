@@ -64,6 +64,7 @@ class RAGState(TypedDict, total=False):
     generation_attempts: int
     status: Status
     sources: list[dict]
+    drafts: Annotated[list[str], operator.add]  # réponses successives (mesure de la remédiation)
     steps: Annotated[list[str], operator.add]
 
 
@@ -133,6 +134,7 @@ def build_graph(llm: BaseChatModel, retriever: Retriever, config: GraphConfig | 
         )
         return {
             "answer": answer,
+            "drafts": [answer],
             "generation_attempts": state["generation_attempts"] + 1,
             "steps": [f"generate: tentative {state['generation_attempts'] + 1}"],
         }
@@ -152,8 +154,11 @@ def build_graph(llm: BaseChatModel, retriever: Retriever, config: GraphConfig | 
 
     def finalize(state: RAGState) -> RAGState:
         documents = state["relevant_documents"]
-        if state["validation"]["grounded"] and state["validation"]["answers_question"]:
-            return {"status": "answered", "sources": sources_from(documents)}
+        v = state["validation"]
+        if v["grounded"] and v["answers_question"]:
+            # Réponse fiable mais qui indique que l'information n'est pas dans les fiches
+            status = "answered" if v["provides_information"] else "no_answer"
+            return {"status": status, "sources": sources_from(documents)}
         # Remédiation épuisée : on ne renvoie pas une réponse jugée non fiable
         return {
             "status": "unverified",

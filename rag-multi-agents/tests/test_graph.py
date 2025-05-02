@@ -134,6 +134,7 @@ def test_regenerates_with_validator_feedback():
 
     assert state["status"] == "answered"
     assert state["answer"] == "Bonne réponse [1]."
+    assert state["drafts"] == ["Mauvaise réponse.", "Bonne réponse [1]."]
     assert "chiffre inventé" in llm.prompts[-2]  # le retour est transmis au générateur
 
 
@@ -186,3 +187,17 @@ def test_llm_errors_are_retried(monkeypatch):
 
     llm.invoke = flaky_invoke
     assert run(llm)["status"] == "answered"
+
+
+def test_honest_non_answer_gets_no_answer_status():
+    llm = FakeLLM(
+        [
+            QueryAnalysis(in_scope=True),
+            GradeResult(relevant=[1]),
+            Validation(grounded=True, answers_question=True, provides_information=False),
+        ],
+        answers=["Les extraits ne donnent pas cette information."],
+    )
+    state = run(llm)
+    assert state["status"] == "no_answer"
+    assert state["answer"] == "Les extraits ne donnent pas cette information."
