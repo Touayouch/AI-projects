@@ -1,4 +1,4 @@
-.PHONY: install lint format test corpus models ingest ingest-recursive eval-retrieval graph api chroma-up chroma-down
+.PHONY: install lint format test corpus models ingest ingest-recursive eval-retrieval graph eval-rag api chroma-up chroma-down
 
 install:
 	uv sync
@@ -34,6 +34,9 @@ eval-retrieval:
 
 graph:
 	uv run rag graph
+
+eval-rag:
+	uv run rag eval-rag
 
 api:
 	uv run uvicorn rag.api.main:app --reload --port 8080

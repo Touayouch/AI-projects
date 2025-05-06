@@ -5,6 +5,7 @@ rag ingest --strategy semantic  # ingestion -> chunking -> indexation
 """
 
 import argparse
+import asyncio
 import json
 import logging
 import statistics
@@ -14,6 +15,7 @@ from pathlib import Path
 from rag.agents.chunking import ChunkingAgent
 from rag.agents.ingestion import IngestionAgent
 from rag.config import get_settings
+from rag.evaluation.rag import RagasScorer, build_report, run_pipeline, score_records
 from rag.evaluation.retrieval import evaluate, load_questions, report_table
 from rag.graph import GraphConfig, build_graph
 from rag.indexing import get_vectorstore, index_chunks, save_chunks
@@ -148,6 +150,24 @@ def cmd_graph(args: argparse.Namespace) -> None:
     print(make_graph(with_retriever=False).get_graph().draw_mermaid())
 
 
+def cmd_eval_rag(args: argparse.Namespace) -> None:
+    settings = get_settings()
+    questions = load_questions(args.questions)[: args.limit]
+    output = Path("eval/results")
+    runs_path, scores_path = output / "rag_runs.jsonl", output / "rag_scores.jsonl"
+
+    records = run_pipeline(make_graph(), questions, runs_path)
+    records = [r for r in records if r["question"] in {q.question for q in questions}]
+
+    judge = settings.eval_llm_model or settings.llm_model
+    scorer = RagasScorer(judge, settings.embedding_model, settings.ollama_base_url)
+    scores = asyncio.run(score_records(scorer, records, scores_path))
+
+    report = build_report(records, scores, judge)
+    (output / "rag_report.md").write_text(report, encoding="utf-8")
+    print(report)
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(prog="rag")
     sub = parser.add_subparsers(required=True)
@@ -187,6 +207,11 @@ def main() -> None:
     ask.set_defaults(func=cmd_ask)
 
     sub.add_parser("graph", help="Diagramme Mermaid du graphe").set_defaults(func=cmd_graph)
+
+    eval_rag = sub.add_parser("eval-rag", help="Évaluation RAGAS de bout en bout")
+    eval_rag.add_argument("--questions", type=Path, default=Path("eval/ragas_questions.jsonl"))
+    eval_rag.add_argument("--limit", type=int, help="Nombre maximum de questions (debug)")
+    eval_rag.set_defaults(func=cmd_eval_rag)
 
     args = parser.parse_args()
     logging.basicConfig(

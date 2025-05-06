@@ -49,6 +49,9 @@ class Settings(BaseSettings):
     max_generation_attempts: int = 2  # génération initiale + 1 correction
     grader_chunk_chars: int = 800  # extrait de chunk montré au grader
 
+    # Évaluation RAGAS : modèle juge (par défaut, le même que llm_model)
+    eval_llm_model: str | None = None
+
     # ChromaDB : "local" (fichiers dans chroma_persist_dir) ou "http" (docker compose)
     chroma_mode: Literal["local", "http"] = "local"
     chroma_persist_dir: Path = Path("data/chroma")
