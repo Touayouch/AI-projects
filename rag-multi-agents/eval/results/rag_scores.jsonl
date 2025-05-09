@@ -1,0 +1,89 @@
+{"question": "Combien de jours de vacances payées un employé du privé acquiert-il chaque mois ?", "draft_scores": [{"faithfulness": 1.0, "answer_relevancy": 0.9389}]}
+{"question": "J'ai droit à combien de jours de congé quand je me pacse ?", "draft_scores": [{"faithfulness": 0.6667, "answer_relevancy": 0.8011}]}
+{"question": "Mon employeur doit-il me donner un jour pour déménager ?", "draft_scores": [{"faithfulness": 1.0, "answer_relevancy": 0.7233}]}
+{"question": "Je suis tombé malade, puis-je reporter mes jours de congés payés ?", "draft_scores": [{"faithfulness": 1.0, "answer_relevancy": 0.7693}]}
+{"question": "Combien de jours de congé a le père à la naissance de son bébé ?", "draft_scores": [{"faithfulness": 1.0, "answer_relevancy": 0.9058}]}
+{"question": "Quelle est la durée du congé de proche aidant ?", "draft_scores": [{"faithfulness": 1.0, "answer_relevancy": 0.7266}]}
+{"question": "Quelles conditions pour prendre un congé sabbatique ?", "draft_scores": [{"faithfulness": 1.0, "answer_relevancy": 0.7712}]}
+{"question": "Dans quels cas un CDD est-il requalifié en CDI ?", "draft_scores": [{"faithfulness": 1.0, "answer_relevancy": 0.8768}]}
+{"question": "Qu'est-ce que le CD2I ?", "draft_scores": [{"faithfulness": 1.0, "answer_relevancy": 0.8329}]}
+{"question": "Est-ce que je touche une indemnité à la fin de mon contrat à durée déterminée ?", "draft_scores": [{"faithfulness": 1.0, "answer_relevancy": 0.8213}]}
+{"question": "Comment fonctionne la PPV ?", "draft_scores": [{"faithfulness": 1.0, "answer_relevancy": 0.7261}]}
+{"question": "Dois-je respecter un délai avant de partir si je quitte mon poste de mon plein gré ?", "draft_scores": [{"faithfulness": 1.0, "answer_relevancy": 0.6953}]}
+{"question": "Si je quitte volontairement mon travail, est-ce que je peux être indemnisé par l'assurance chômage ?", "draft_scores": [{"faithfulness": 1.0, "answer_relevancy": 0.8504}]}
+{"question": "Quelle est la durée du préavis de licenciement ?", "draft_scores": [{"faithfulness": 1.0, "answer_relevancy": 0.7704}]}
+{"question": "Comment compter les années passées dans l'entreprise pour calculer l'indemnité de licenciement ?", "draft_scores": [{"faithfulness": 1.0, "answer_relevancy": 0.8124}]}
+{"question": "Qui peut m'accompagner à l'entretien avant licenciement s'il n'y a pas de représentant du personnel dans l'entreprise ?", "draft_scores": [{"faithfulness": 0.6667, "answer_relevancy": 0.8394}]}
+{"question": "Mes jours de vacances non pris me sont-ils payés quand je quitte l'entreprise ?", "draft_scores": [{"faithfulness": 1.0, "answer_relevancy": 0.8328}]}
+{"question": "Quelle indemnité si je suis licencié parce que le médecin du travail m'a déclaré inapte ?", "draft_scores": [{"faithfulness": 1.0, "answer_relevancy": 0.7489}]}
+{"question": "Mon patron peut-il me forcer à partir à la retraite ?", "draft_scores": [{"faithfulness": 1.0, "answer_relevancy": 0.6772}]}
+{"question": "Qu'est-ce que la surcote pour la retraite ?", "draft_scores": [{"faithfulness": 1.0, "answer_relevancy": 0.775}]}
+{"question": "Peut-on racheter des trimestres de retraite ?", "draft_scores": [{"faithfulness": 0.875, "answer_relevancy": 0.7469}]}
+{"question": "Au bout de combien d'heures de travail ai-je droit à une pause ?", "draft_scores": [{"faithfulness": 1.0, "answer_relevancy": 0.7369}]}
+{"question": "Mon employeur peut-il refuser que je travaille depuis chez moi ?", "draft_scores": [{"faithfulness": 0.1667, "answer_relevancy": 0.8613}]}
+{"question": "Comment est mis en place le travail de nuit dans une entreprise ?", "draft_scores": [{"faithfulness": 1.0, "answer_relevancy": 0.7464}]}
+{"question": "Une femme enceinte peut-elle continuer à travailler la nuit ?", "draft_scores": [{"faithfulness": 0.6, "answer_relevancy": 0.8825}]}
+{"question": "Suis-je obligée d'annoncer que j'attends un enfant à mon patron ?", "draft_scores": [{"faithfulness": 1.0, "answer_relevancy": 0.7272}]}
+{"question": "Comment fonctionne le C2P ?", "draft_scores": [{"faithfulness": 1.0, "answer_relevancy": 0.6699}]}
+{"question": "Dans quels cas contacter l'inspection du travail ?", "draft_scores": [{"faithfulness": 0.8333, "answer_relevancy": 0.809}]}
+{"question": "Dois-je payer l'ordinateur de ma boîte que j'ai cassé ?", "draft_scores": [{"faithfulness": 0.75, "answer_relevancy": 0.7689}]}
+{"question": "Comment faire un bilan de compétences quand on est salarié du privé ?", "draft_scores": [{"faithfulness": 1.0, "answer_relevancy": 0.7361}]}
+{"question": "Comment faire reconnaître mon expérience professionnelle pour obtenir un diplôme ?", "draft_scores": [{"faithfulness": 1.0, "answer_relevancy": 0.6403}]}
+{"question": "Quel est le salaire d'un apprenti ?", "draft_scores": [{"faithfulness": 1.0, "answer_relevancy": 0.6208}]}
+{"question": "Dans quels cas France Travail peut-il me radier ?", "draft_scores": [{"faithfulness": 1.0, "answer_relevancy": 0.6026}]}
+{"question": "France Travail me réclame un trop-perçu, que faire ?", "draft_scores": [{"faithfulness": 1.0, "answer_relevancy": 0.6229}]}
+{"question": "Quelles sont les conditions de ressources de la complémentaire santé solidaire ?", "draft_scores": [{"faithfulness": 1.0, "answer_relevancy": 0.6705}]}
+{"question": "Comment éviter d'avancer l'argent chez le médecin ?", "draft_scores": [{"faithfulness": 0.8333, "answer_relevancy": 0.7572}]}
+{"question": "Que veulent dire les chiffres de mon numéro de sécu ?", "draft_scores": [{"faithfulness": 1.0, "answer_relevancy": 0.722}]}
+{"question": "La mutuelle d'entreprise est-elle obligatoire pour le salarié ?", "draft_scores": [{"faithfulness": 1.0, "answer_relevancy": 0.8026}]}
+{"question": "Existe-t-il une aide pour payer la maison de retraite médicalisée de mon père ?", "draft_scores": [{"faithfulness": 0.0, "answer_relevancy": 0.0}]}
+{"question": "Un enfant de 22 ans est-il considéré à charge pour le RSA ?", "draft_scores": [{"faithfulness": 0.8, "answer_relevancy": 0.0}]}
+{"question": "Quelles tâches sont interdites à un ado de 16 ans en stage dans une entreprise ?", "draft_scores": [{"faithfulness": 0.7143, "answer_relevancy": 0.8069}]}
+{"question": "L'entreprise doit-elle fournir un endroit pour que les salariés se changent ?", "draft_scores": [{"faithfulness": 0.0, "answer_relevancy": 0.8342}]}
+{"question": "C'est quoi le CEJ ?", "draft_scores": [{"faithfulness": 1.0, "answer_relevancy": 0.6878}]}
+{"question": "Quelle est la durée maximale d'une mission d'intérim ?", "draft_scores": [{"faithfulness": 1.0, "answer_relevancy": 0.9023}]}
+{"question": "Qui peut toucher la prime de Noël ?", "draft_scores": [{"faithfulness": 1.0, "answer_relevancy": 0.7435}]}
+{"question": "Quelles ressources sont prises en compte pour calculer le RSA ?", "draft_scores": [{"faithfulness": 1.0, "answer_relevancy": 0.9413}]}
+{"question": "Mon entreprise met les salariés au chômage technique, quelles démarches doit faire l'employeur ?", "draft_scores": [{"faithfulness": 1.0, "answer_relevancy": 0.6511}]}
+{"question": "Un chômeur peut-il suivre une formation payée par France Travail ?", "draft_scores": [{"faithfulness": 1.0, "answer_relevancy": 0.7636}]}
+{"question": "Que signifient les catégories A, B, C des demandeurs d'emploi ?", "draft_scores": [{"faithfulness": 0.8333, "answer_relevancy": 0.8165}]}
+{"question": "Combien de jours de congé a un salarié quand son enfant naît ?", "draft_scores": [{"faithfulness": 0.5, "answer_relevancy": 0.8036}]}
+{"question": "Quelle est la différence entre jour ouvrable et jour ouvré ?", "draft_scores": [{"faithfulness": 1.0, "answer_relevancy": 0.9088}]}
+{"question": "Combien de temps dure le congé d'adoption dans le privé ?", "draft_scores": [{"faithfulness": 1.0, "answer_relevancy": 0.8295}]}
+{"question": "Est-ce que mes collègues peuvent me donner leurs RTT parce que mon enfant est très malade ?", "draft_scores": [{"faithfulness": 1.0, "answer_relevancy": 0.8711}]}
+{"question": "Ai-je le droit d'avoir deux emplois en même temps ?", "draft_scores": [{"faithfulness": 1.0, "answer_relevancy": 0.8995}]}
+{"question": "Qu'est-ce que la mobilité volontaire sécurisée ?", "draft_scores": [{"faithfulness": 1.0, "answer_relevancy": 0.8674}]}
+{"question": "Qu'est-ce qu'un CDD d'insertion ?", "draft_scores": [{"faithfulness": 1.0, "answer_relevancy": 0.8094}]}
+{"question": "Est-ce que je dois rembourser ma formation si je démissionne juste après ?", "draft_scores": [{"faithfulness": 0.8571, "answer_relevancy": 0.8182}]}
+{"question": "Qu'est-ce que la Pro-A ?", "draft_scores": [{"faithfulness": 0.875, "answer_relevancy": 0.8368}]}
+{"question": "Peut-on cumuler la PCH avec d'autres allocations ?", "draft_scores": [{"faithfulness": 1.0, "answer_relevancy": 0.8285}]}
+{"question": "Comment est calculé le salaire d'une assistante maternelle ?", "draft_scores": [{"faithfulness": 1.0, "answer_relevancy": 0.7444}]}
+{"question": "Ma nounou tombe malade, est-elle indemnisée ?", "draft_scores": [{"faithfulness": 1.0, "answer_relevancy": 0.5867}]}
+{"question": "Qu'est-ce que l'Aspa ?", "draft_scores": [{"faithfulness": 1.0, "answer_relevancy": 0.7387}]}
+{"question": "Existe-t-il une aide pour payer une aide à domicile pour ma mère âgée ?", "draft_scores": [{"faithfulness": 1.0, "answer_relevancy": 0.7693}]}
+{"question": "Qu'est-ce qu'un PSE ?", "draft_scores": [{"faithfulness": 1.0, "answer_relevancy": 0.6189}]}
+{"question": "Quels sont les avantages du contrat de sécurisation professionnelle après un licenciement économique ?", "draft_scores": [{"faithfulness": 0.0, "answer_relevancy": 0.0}]}
+{"question": "Que se passe-t-il si un salarié commet une faute grave pendant son préavis ?", "draft_scores": [{"faithfulness": 1.0, "answer_relevancy": 0.7155}]}
+{"question": "Qu'est-ce qu'un accord de performance collective ?", "draft_scores": [{"faithfulness": 1.0, "answer_relevancy": 0.7646}]}
+{"question": "À quel âge peut-on commencer à travailler ?", "draft_scores": [{"faithfulness": 1.0, "answer_relevancy": 0.9219}]}
+{"question": "Peut-on faire appel d'une décision des prud'hommes ?", "draft_scores": [{"faithfulness": 1.0, "answer_relevancy": 0.6757}, {"faithfulness": 1.0, "answer_relevancy": 0.7035}]}
+{"question": "Mon employeur et moi pouvons-nous régler notre litige sans aller au tribunal ?", "draft_scores": [{"faithfulness": 1.0, "answer_relevancy": 0.8184}]}
+{"question": "Quel est le rôle du CSE dans l'entreprise ?", "draft_scores": [{"faithfulness": 1.0, "answer_relevancy": 0.9013}]}
+{"question": "Qui peut partir plus tôt à la retraite parce qu'il a commencé à travailler jeune ?", "draft_scores": [{"faithfulness": 1.0, "answer_relevancy": 0.7789}]}
+{"question": "Comment fonctionne la retraite progressive ?", "draft_scores": [{"faithfulness": 0.8571, "answer_relevancy": 0.8297}]}
+{"question": "Si je travaille à l'étranger pour mon entreprise, est-ce que je cotise pour ma retraite ?", "draft_scores": [{"faithfulness": 1.0, "answer_relevancy": 0.7021}]}
+{"question": "La prime d'ancienneté est-elle obligatoire dans le privé ?", "draft_scores": [{"faithfulness": 1.0, "answer_relevancy": 0.8286}]}
+{"question": "Mon patron peut-il me demander un justificatif pour une journée d'absence ?", "draft_scores": [{"faithfulness": 1.0, "answer_relevancy": 0.8875}]}
+{"question": "Puis-je reprendre le travail avant la fin de mon arrêt maladie ?", "draft_scores": [{"faithfulness": 1.0, "answer_relevancy": 0.8328}]}
+{"question": "Faut-il une visite médicale en revenant d'un arrêt de travail ?", "draft_scores": [{"faithfulness": 0.8, "answer_relevancy": 0.7513}]}
+{"question": "Une salariée enceinte peut-elle demander un aménagement de son poste ?", "draft_scores": [{"faithfulness": 1.0, "answer_relevancy": 0.8712}]}
+{"question": "Peut-on m'obliger à travailler le soir ?", "draft_scores": [{"faithfulness": 1.0, "answer_relevancy": 0.8904}]}
+{"question": "Qu'est-ce que l'aide médicale de l'État ?", "draft_scores": [{"faithfulness": 1.0, "answer_relevancy": 0.7119}]}
+{"question": "Comment sont remboursés les appareils auditifs ?", "draft_scores": [{"faithfulness": 1.0, "answer_relevancy": 0.7}]}
+{"question": "À quoi sert Mon espace santé ?", "draft_scores": [{"faithfulness": 1.0, "answer_relevancy": 0.831}]}
+{"question": "Combien coûte une consultation chez un médecin non conventionné ?", "draft_scores": [{"faithfulness": 0.6, "answer_relevancy": 0.8335}]}
+{"question": "Mon employeur peut-il m'imposer de passer à temps partiel ?", "draft_scores": [{"faithfulness": 1.0, "answer_relevancy": 0.8806}]}
+{"question": "Quel était le montant du SMIC horaire en 1975 ?", "draft_scores": [{"faithfulness": 1.0, "answer_relevancy": 0.0}]}
+{"question": "Quel est le montant de la prime d'intéressement chez Renault cette année ?", "draft_scores": [{"faithfulness": 0.0, "answer_relevancy": 0.0}]}
+{"question": "Quel est le numéro de téléphone de l'agence France Travail de Caen ?", "draft_scores": [{"faithfulness": 0.0, "answer_relevancy": 0.9276}]}
+{"question": "Quelle sera la revalorisation des pensions de retraite en 2035 ?", "draft_scores": [{"faithfulness": 1.0, "answer_relevancy": 0.0}]}

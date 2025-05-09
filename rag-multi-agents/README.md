@@ -23,7 +23,7 @@ mettre en évidence l'intérêt d'un retrieval hybride dense + lexical.
 - [x] Phase 1 : ingestion et chunking sémantique
 - [x] Phase 2 : retrieval hybride (dense + BM25 + fusion RRF)
 - [x] Phase 3 : orchestration multi-agents (LangGraph)
-- [ ] Phase 4 : évaluation RAGAS et remédiation hors-sujet
+- [x] Phase 4 : évaluation RAGAS et remédiation hors-sujet
 - [ ] Phase 5 : API FastAPI et Docker
 - [ ] Phase 6 : documentation, démo
 
@@ -162,6 +162,56 @@ uv run rag ask "Combien de jours de congé pour un Pacs ?" --verbose
 uv run rag graph   # diagramme Mermaid généré depuis le code
 ```
 
+## Évaluation de bout en bout (RAGAS)
+
+100 questions ([eval/ragas_questions.jsonl](eval/ragas_questions.jsonl)) : 85 avec réponse
+dans le corpus (42 en termes exacts, 43 reformulées), 8 hors périmètre (cuisine, sport...),
+7 sans réponse dans les fiches (SMIC de 1975, numéro de téléphone d'une agence...).
+Rapport complet : [eval/results/rag_report.md](eval/results/rag_report.md), réponses et
+scores question par question dans `eval/results/rag_*.jsonl`.
+
+| Indicateur | Résultat |
+| --- | --- |
+| **Fidélité RAGAS** (*faithfulness*, 85 réponses) | **0.91** |
+| **Pertinence RAGAS** (*answer relevancy*, 85 réponses) | **0.77** |
+| Questions hors périmètre refusées | 8/8 |
+| Questions sans réponse : le système s'abstient ou dit ne pas savoir | 7/7 |
+| Questions légitimes refusées à tort | 0/85 |
+| Retrieval hit@5 dans le pipeline | 0.88 |
+| Latence médiane (CPU, sans GPU) | 87 s |
+
+**Détection et remédiation des réponses hors sujet.** Une réponse est comptée hors sujet /
+non fidèle si sa pertinence ou sa fidélité RAGAS est < 0.5. En scorant le premier brouillon
+de chaque réponse (ce qu'un pipeline sans validateur aurait renvoyé) et la réponse finale :
+
+| | Sans validateur | Avec validateur |
+| --- | --- | --- |
+| Fidélité moyenne | 0.89 | 0.91 |
+| Pertinence moyenne | 0.73 | 0.77 |
+| Réponses hors sujet / non fidèles présentées comme des réponses | 9 | 5 |
+
+**Lecture honnête de ces résultats :**
+- Le gain vient surtout de la détection des non-réponses : 4 réponses du type « les extraits
+  ne permettent pas de répondre » sont reclassées `no_answer` au lieu d'être présentées comme
+  des réponses. La boucle de régénération ne s'est déclenchée qu'une fois : avec un modèle 4B
+  qui se juge lui-même, le validateur est indulgent.
+- Sur les 5 cas restants, 3 sont des « je ne sais pas » que le validateur n'a pas reconnus
+  (statut `answered` au lieu de `no_answer`) ; 2 sont de vrais défauts (une affirmation non
+  sourcée sur le télétravail, une pertinence à 0 probablement due au juge).
+- 1 question avec réponse n'a pas trouvé la bonne fiche (contrat de sécurisation
+  professionnelle) : le système a répondu qu'il n'avait pas l'information plutôt que
+  d'inventer.
+
+**Limites :** le juge RAGAS est le même modèle local de 4B que le générateur (pas d'API
+externe) ; ses notes sont moins fiables que celles d'un grand modèle et potentiellement
+indulgentes envers ses propres réponses. Les métriques RAGAS utilisées (faithfulness, answer
+relevancy) ne nécessitent pas de réponse de référence : elles mesurent la fidélité aux
+sources et la pertinence, pas l'exactitude juridique.
+
+```bash
+make eval-rag   # ~5 h sur CPU, reprenable après interruption
+```
+
 ## Structure
 
 ```
@@ -169,7 +219,7 @@ src/rag/
 ├── agents/        # agents spécialisés (ingestion, chunking, query, grader, generator, validator)
 ├── ingestion/     # téléchargement du corpus, parsing XML
 ├── retrieval/     # dense (ChromaDB), sparse (BM25), hybride (RRF)
-├── evaluation/    # métriques de retrieval (hit@k, MRR)
+├── evaluation/    # retrieval (hit@k, MRR) et bout en bout (RAGAS)
 ├── api/           # FastAPI
 ├── graph.py       # graphe LangGraph (orchestration des agents)
 ├── indexing.py    # ChromaDB + export JSONL
@@ -192,6 +242,7 @@ make corpus             # télécharge et filtre les fiches dans data/raw/
 make ingest             # ingestion + chunking sémantique + indexation ChromaDB (~3 h sur CPU)
 make ingest-recursive   # baseline pour comparaison
 make eval-retrieval     # compare dense / BM25 / hybride
+make eval-rag           # évaluation RAGAS sur 100 questions (~5 h sur CPU)
 make test
 ```
 
