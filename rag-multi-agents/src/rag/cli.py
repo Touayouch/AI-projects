@@ -116,13 +116,7 @@ def make_graph(strategy: str | None = None, with_retriever: bool = True):
     retriever = (
         build_retrievers(settings, strategy, ["hybrid"])["hybrid"] if with_retriever else None
     )
-    config = GraphConfig(
-        k=settings.retrieval_k,
-        max_retrieval_attempts=settings.max_retrieval_attempts,
-        max_generation_attempts=settings.max_generation_attempts,
-        grader_chunk_chars=settings.grader_chunk_chars,
-    )
-    return build_graph(get_llm(settings), retriever, config)
+    return build_graph(get_llm(settings), retriever, GraphConfig.from_settings(settings))
 
 
 def cmd_ask(args: argparse.Namespace) -> None:

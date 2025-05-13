@@ -75,6 +75,15 @@ class GraphConfig:
     max_generation_attempts: int = 2
     grader_chunk_chars: int = 800
 
+    @classmethod
+    def from_settings(cls, settings) -> "GraphConfig":
+        return cls(
+            k=settings.retrieval_k,
+            max_retrieval_attempts=settings.max_retrieval_attempts,
+            max_generation_attempts=settings.max_generation_attempts,
+            grader_chunk_chars=settings.grader_chunk_chars,
+        )
+
 
 def sources_from(documents: list[Document]) -> list[dict]:
     return [
