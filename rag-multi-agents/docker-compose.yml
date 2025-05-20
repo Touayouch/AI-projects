@@ -1,11 +1,38 @@
+# API + Ollama.
+# - L'index (data/chroma, data/processed) est construit au préalable avec `make ingest`
+#   puis monté dans le conteneur.
+# - Les modèles déjà téléchargés sur la machine hôte sont réutilisés (OLLAMA_MODELS_DIR),
+#   sans nouveau téléchargement.
 services:
+  api:
+    build: .
+    ports:
+      - "8080:8080"
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      OLLAMA_BASE_URL: http://ollama:11434
+    volumes:
+      - ./data:/app/data
+    depends_on:
+      - ollama
+    restart: unless-stopped
+
+  ollama:
+    image: ollama/ollama:0.35.0
+    volumes:
+      - ${OLLAMA_MODELS_DIR:-/usr/share/ollama/.ollama/models}:/root/.ollama/models
+    restart: unless-stopped
+
+  # Optionnel : ChromaDB en mode serveur (CHROMA_MODE=http), nécessite de réindexer
   chroma:
     image: chromadb/chroma:1.5.9
+    profiles: ["chroma-server"]
     ports:
       - "8001:8000"
     volumes:
       - chroma_data:/data
-    restart: unless-stopped
 
 volumes:
   chroma_data:
