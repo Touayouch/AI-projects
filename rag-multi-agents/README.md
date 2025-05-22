@@ -24,7 +24,7 @@ mettre en évidence l'intérêt d'un retrieval hybride dense + lexical.
 - [x] Phase 2 : retrieval hybride (dense + BM25 + fusion RRF)
 - [x] Phase 3 : orchestration multi-agents (LangGraph)
 - [x] Phase 4 : évaluation RAGAS et remédiation hors-sujet
-- [ ] Phase 5 : API FastAPI et Docker
+- [x] Phase 5 : API FastAPI et Docker
 - [ ] Phase 6 : documentation, démo
 
 ## Pipeline d'ingestion
@@ -212,6 +212,59 @@ sources et la pertinence, pas l'exactitude juridique.
 make eval-rag   # ~5 h sur CPU, reprenable après interruption
 ```
 
+## API (FastAPI)
+
+| Méthode | Route | Rôle |
+| --- | --- | --- |
+| `GET` | `/health` | État du service et de la connexion à Ollama (`ok` / `degraded`) |
+| `POST` | `/search` | Recherche seule (`dense`, `sparse` ou `hybrid`), en quelques centaines de ms |
+| `POST` | `/query` | Réponse complète via le graphe multi-agents |
+| `POST` | `/query/stream` | Idem en *Server-Sent Events* : un événement par étape du graphe, puis la réponse |
+
+Documentation interactive (Swagger) : http://localhost:8080/docs
+
+```bash
+make api   # serveur de développement sur le port 8080
+
+curl -X POST localhost:8080/query -H "Content-Type: application/json" \
+     -d '{"question": "Combien de jours de congé pour un Pacs ?", "verbose": true}'
+```
+
+```json
+{
+  "question": "Combien de jours de congé pour un Pacs ?",
+  "answer": "Vous avez droit à 4 jours de congé pour un Pacs [1]. [...]",
+  "status": "answered",
+  "sources": [{"n": 1, "title": "Congé du salarié pour mariage ou Pacs", "url": "https://www.service-public.gouv.fr/particuliers/vosdroits/F34154", "...": "..."}],
+  "steps": ["analyze: in_scope=True", "retrieve: 5 chunks", "grade: 1/5 chunks pertinents", "generate: tentative 1", "validate: grounded=True answers_question=True"],
+  "latency_s": 90.1
+}
+```
+
+La génération prenant 1 à 2 minutes sur CPU, `/query/stream` permet d'afficher la
+progression (`analyze` → `retrieve` → `grade` → `generate` → `validate`) au fil de l'eau :
+
+```bash
+curl -N -X POST localhost:8080/query/stream -H "Content-Type: application/json" \
+     -d '{"question": "Mon employeur peut-il me demander un justificatif d absence ?"}'
+```
+
+Le graphe et les index (BM25, ChromaDB) sont chargés une seule fois au démarrage ; les
+routes synchrones s'exécutent dans le pool de threads de FastAPI. Une panne d'Ollama renvoie
+une erreur `503` explicite.
+
+### Docker
+
+```bash
+make ingest      # une fois : construit l'index dans data/
+make docker-up   # API (port 8080) + Ollama
+```
+
+`docker-compose.yml` lance l'API et un conteneur Ollama. L'index `data/` est monté dans le
+conteneur, et les modèles déjà téléchargés sur la machine hôte sont réutilisés
+(`OLLAMA_MODELS_DIR`, par défaut `/usr/share/ollama/.ollama/models`). La CI construit l'image
+à chaque push.
+
 ## Structure
 
 ```
@@ -220,7 +273,7 @@ src/rag/
 ├── ingestion/     # téléchargement du corpus, parsing XML
 ├── retrieval/     # dense (ChromaDB), sparse (BM25), hybride (RRF)
 ├── evaluation/    # retrieval (hit@k, MRR) et bout en bout (RAGAS)
-├── api/           # FastAPI
+├── api/           # FastAPI (routes, schémas Pydantic)
 ├── graph.py       # graphe LangGraph (orchestration des agents)
 ├── indexing.py    # ChromaDB + export JSONL
 ├── models.py      # LLM et embeddings Ollama + cache SQLite
