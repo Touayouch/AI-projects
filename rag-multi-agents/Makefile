@@ -1,15 +1,15 @@
-.PHONY: install lint format test corpus models ingest ingest-recursive eval-retrieval graph eval-rag api docker-up docker-down
+.PHONY: install lint format test corpus models ingest ingest-recursive eval-retrieval graph eval-rag api demo docker-up docker-down
 
 install:
 	uv sync
 
 lint:
-	uv run ruff check src tests
-	uv run ruff format --check src tests
+	uv run ruff check src tests demo
+	uv run ruff format --check src tests demo
 
 format:
-	uv run ruff check --fix src tests
-	uv run ruff format src tests
+	uv run ruff check --fix src tests demo
+	uv run ruff format src tests demo
 
 test:
 	uv run pytest -v
@@ -40,6 +40,9 @@ eval-rag:
 
 api:
 	uv run uvicorn rag.api.main:app --reload --port 8080
+
+demo:
+	uv run --extra demo streamlit run demo/app.py
 
 docker-up:
 	docker compose up -d --build

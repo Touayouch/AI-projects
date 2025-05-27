@@ -29,6 +29,7 @@ rag = "rag.cli:main"
 [project.optional-dependencies]
 anthropic = ["langchain-anthropic>=1.7"]
 openai = ["langchain-openai>=1.6"]
+demo = ["streamlit>=1.64"]
 
 [dependency-groups]
 dev = [
