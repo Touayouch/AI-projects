@@ -1,11 +1,64 @@
 # Système RAG multi-agents sur documents métier
 
-Pipeline RAG multi-étapes orchestré par des agents spécialisés (ingestion, chunking sémantique,
-retrieval hybride dense/sparse, validation qualité, génération), évalué automatiquement avec RAGAS.
+[![CI](https://github.com/Touayouch/AI-projects/actions/workflows/rag-multi-agents.yml/badge.svg)](https://github.com/Touayouch/AI-projects/actions/workflows/rag-multi-agents.yml)
+![Python](https://img.shields.io/badge/python-3.11%2B-blue)
+![Licence](https://img.shields.io/badge/licence-MIT-green)
 
-**Stack :** LangChain · LangGraph · ChromaDB · FastAPI · Ollama
+Assistant de questions-réponses sur le **droit du travail et la protection sociale**, qui
+répond à partir de **875 fiches officielles service-public.gouv.fr** en citant ses sources.
+Le pipeline est orchestré par des **agents spécialisés** (filtrage, recherche hybride, tri,
+génération, validation) avec **LangGraph**, et tourne **entièrement en local, sans GPU**
+(Ollama + Qwen3-4B).
 
-> 🚧 Projet en cours de développement.
+**Stack :** LangChain · LangGraph · ChromaDB · FastAPI · Ollama · RAGAS · Streamlit · Docker
+
+## En bref
+
+| | |
+| --- | --- |
+| Corpus | 875 fiches → 14 947 chunks (chunking sémantique guidé par la structure) |
+| Retrieval hybride dense + BM25 (44 questions annotées) | MRR@10 **0.788** vs 0.753 dense seul, hit@1 **0.75** |
+| Fidélité RAGAS (100 questions) | **0.91** |
+| Pertinence RAGAS (100 questions) | **0.77** |
+| Questions hors périmètre refusées | **8/8**, 0 refus à tort sur 85 questions légitimes |
+| Réponses hors sujet renvoyées, sans → avec validateur | **9 → 5** |
+| Latence | ~90 s par question sur CPU (Ryzen 5, sans GPU) |
+
+## Architecture
+
+```mermaid
+graph LR
+    subgraph Hors_ligne["Indexation (hors ligne)"]
+        XML[Fiches XML<br/>service-public] --> ING[IngestionAgent<br/>XML → Markdown]
+        ING --> CHK[ChunkingAgent<br/>structure + sémantique]
+        CHK --> CHR[(ChromaDB<br/>bge-m3)]
+        CHK --> BM[(Index BM25)]
+    end
+    subgraph En_ligne["Question (LangGraph)"]
+        Q([Question]) --> AN[QueryAgent<br/>périmètre]
+        AN --> RET[Retrieval hybride<br/>RRF]
+        RET --> GR[DocumentGrader]
+        GR -- rien d'utile --> RW[Reformulation] --> RET
+        GR --> GEN[Generator<br/>citations]
+        GEN --> VAL[AnswerValidator]
+        VAL -- rejetée --> GEN
+        VAL --> A([Réponse + sources])
+    end
+    CHR -.-> RET
+    BM -.-> RET
+    API[FastAPI<br/>/query/stream] --> Q
+    UI[Démo Streamlit] --> API
+```
+
+## Démo
+
+```bash
+make api    # API FastAPI sur http://localhost:8080 (Swagger : /docs)
+make demo   # interface Streamlit sur http://localhost:8501
+```
+
+L'interface affiche la progression du graphe en direct (analyse → recherche → tri →
+rédaction → contrôle qualité), puis la réponse, son statut et les fiches sources cliquables.
 
 ## Corpus
 
@@ -17,21 +70,11 @@ chômage, retraite, santé... Données ouvertes publiées par la DILA sous
 Un corpus juridique riche en termes exacts (CDD, CSE, RSA, article L1234-9...), idéal pour
 mettre en évidence l'intérêt d'un retrieval hybride dense + lexical.
 
-## Roadmap
-
-- [x] Phase 0 : setup du projet
-- [x] Phase 1 : ingestion et chunking sémantique
-- [x] Phase 2 : retrieval hybride (dense + BM25 + fusion RRF)
-- [x] Phase 3 : orchestration multi-agents (LangGraph)
-- [x] Phase 4 : évaluation RAGAS et remédiation hors-sujet
-- [x] Phase 5 : API FastAPI et Docker
-- [ ] Phase 6 : documentation, démo
-
 ## Pipeline d'ingestion
 
 ```
 fiches XML ──► IngestionAgent ──► ChunkingAgent ──► ChromaDB (dense)
-               parsing XML→Markdown  sections (titres)     + chunks.jsonl (BM25, phase 2)
+               parsing XML→Markdown  sections (titres)     + chunks.jsonl (index BM25)
                nettoyage, dédup       + regroupement sémantique
 ```
 
@@ -115,7 +158,7 @@ graph TD
 | Agent | Rôle | Sortie |
 | --- | --- | --- |
 | **QueryAgent** (`analyze`, `rewrite`) | Filtre les questions hors périmètre (tolérant au langage familier) ; reformule la requête seulement si rien de pertinent n'est trouvé | `QueryAnalysis` (JSON structuré) |
-| **Retriever** (`retrieve`) | Recherche hybride dense + BM25 (phase 2) | top 5 chunks |
+| **Retriever** (`retrieve`) | Recherche hybride dense + BM25 | top 5 chunks |
 | **DocumentGrader** (`grade`) | Écarte les chunks non pertinents (un seul appel LLM pour tous les chunks) | indices des chunks utiles |
 | **Generator** (`generate`) | Rédige la réponse à partir des seuls chunks retenus, avec citations `[n]` | texte |
 | **AnswerValidator** (`validate`) | Vérifie la fidélité aux sources et la pertinence ; en cas d'échec, son retour est renvoyé au générateur | `Validation` |
@@ -265,6 +308,35 @@ conteneur, et les modèles déjà téléchargés sur la machine hôte sont réut
 (`OLLAMA_MODELS_DIR`, par défaut `/usr/share/ollama/.ollama/models`). La CI construit l'image
 à chaque push.
 
+## Choix techniques
+
+- **Tout en local (Ollama, CPU)** : aucune donnée envoyée à une API externe, coût nul, mais
+  une latence de 1 à 2 minutes par question. Le fournisseur de LLM est configurable
+  (`LLM_PROVIDER=anthropic|openai`) pour un déploiement plus rapide.
+- **Chunking guidé par la structure** : les fiches ont une hiérarchie riche (chapitres, cas,
+  encadrés) ; découper d'abord par titres puis regrouper sémantiquement évite de couper un
+  « cas » en deux, et le fil d'Ariane rend chaque chunk autonome.
+- **RRF plutôt qu'une somme de scores** : pas de normalisation fragile entre BM25 et cosinus.
+- **Sorties structurées (Pydantic + JSON schema)** pour toutes les décisions de routage : un
+  modèle de 4B produit alors des décisions exploitables de façon fiable.
+- **Un seul appel LLM pour trier 5 chunks** (au lieu de 5) : divise la latence de cette étape.
+- **Évaluation reprenable** (JSONL ligne par ligne) : indispensable quand une évaluation dure
+  5 heures sur CPU.
+
+## Limites et pistes d'amélioration
+
+- **Juge RAGAS = générateur** : les scores seraient plus fiables avec un juge plus grand
+  (API) ; le validateur interne, lui aussi en 4B, est indulgent (1 seule régénération sur 100
+  questions).
+- **Détection des non-réponses incomplète** : 3 réponses « je ne sais pas » restent étiquetées
+  `answered` ; une règle déterministe en complément du validateur réglerait ces cas.
+- **Latence** : un GPU, un modèle servi par vLLM, ou le parallélisme des nœuds indépendants
+  la réduiraient fortement.
+- **Pas de reranker** : un cross-encoder (ex. `bge-reranker-v2-m3`) améliorerait probablement
+  hit@1, au prix d'une latence supplémentaire.
+- **Fraîcheur** : le corpus est figé à la date d'ingestion ; une mise à jour incrémentale
+  (via la date de modification des fiches) serait nécessaire en production.
+
 ## Structure
 
 ```
@@ -279,6 +351,7 @@ src/rag/
 ├── models.py      # LLM et embeddings Ollama + cache SQLite
 ├── cli.py         # commande `rag`
 └── config.py      # configuration (.env)
+demo/app.py        # interface Streamlit (client de l'API)
 eval/              # questions annotées et rapports d'évaluation
 tests/
 ```
@@ -297,6 +370,8 @@ make ingest-recursive   # baseline pour comparaison
 make eval-retrieval     # compare dense / BM25 / hybride
 make eval-rag           # évaluation RAGAS sur 100 questions (~5 h sur CPU)
 make test
+make api                # API sur le port 8080
+make demo               # interface Streamlit sur le port 8501
 ```
 
 Les statistiques de chunking sont écrites dans `data/processed/stats_<stratégie>.json`.
