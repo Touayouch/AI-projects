@@ -1,0 +1,17 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+build/
+dist/
+
+# Outils
+.pytest_cache/
+.ruff_cache/
+
+# Secrets
+.env
+
+# Jeux de données téléchargés (re-téléchargeables)
+data/
