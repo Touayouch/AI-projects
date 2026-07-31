@@ -1,0 +1,28 @@
+name: multi-agent-debate-math
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "multi-agent-debate-math/**"
+      - ".github/workflows/multi-agent-debate-math.yml"
+  pull_request:
+    paths:
+      - "multi-agent-debate-math/**"
+      - ".github/workflows/multi-agent-debate-math.yml"
+
+defaults:
+  run:
+    working-directory: multi-agent-debate-math
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - run: uv python install 3.12
+      - run: uv sync
+      - run: uv run ruff check src tests
+      - run: uv run ruff format --check src tests
+      - run: uv run pytest -v
