@@ -10,6 +10,7 @@ dependencies = [
     "langgraph>=1.2",
     "pydantic-settings>=2.15",
     "pyyaml>=6.0",
+    "math-verify[antlr4_13_2]>=0.9",
 ]
 
 [dependency-groups]
