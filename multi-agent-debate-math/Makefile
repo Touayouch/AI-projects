@@ -1,4 +1,4 @@
-.PHONY: install lint format test models ping
+.PHONY: install lint format test models ping check-grader
 
 install:
 	uv sync
@@ -20,3 +20,6 @@ models:
 
 ping:
 	uv run debate ping
+
+check-grader:
+	uv run debate check-grader

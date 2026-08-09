@@ -17,7 +17,7 @@ class Settings(BaseSettings):
     # Échantillonnage : une température > 0 est nécessaire pour que le vote et le débat
     # disposent de réponses diverses
     temperature: float = 0.7
-    max_tokens: int = 1024
+    max_tokens: int = 2048  # 1024 tronquait certaines solutions de MATH-500
     seed: int = 0
 
     request_timeout: float = 600.0
