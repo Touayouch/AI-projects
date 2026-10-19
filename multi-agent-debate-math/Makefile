@@ -1,4 +1,4 @@
-.PHONY: install lint format test models ping check-grader
+.PHONY: install lint format test models ping check-grader dev-run
 
 install:
 	uv sync
@@ -23,3 +23,7 @@ ping:
 
 check-grader:
 	uv run debate check-grader
+
+dev-run:
+	uv run debate run configs/experiments/dev_gsm8k_sampling.yaml --limit 10
+	uv run debate report results/dev_gsm8k_sampling.jsonl

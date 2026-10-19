@@ -23,7 +23,7 @@ analyse l'évolution des réponses au fil du débat.
 
 - [x] Phase 0 : setup (client LLM compatible OpenAI, configuration, CI)
 - [x] Phase 1 : données (GSM8K, MATH-500) et vérification des réponses
-- [ ] Phase 2 : réponse unique, vote majoritaire, comptage des tokens
+- [x] Phase 2 : réponse unique, vote majoritaire, comptage des tokens
 - [ ] Phase 3 : débat avec LangGraph, comparaison à budget égal
 - [ ] Phase 4 : expériences sur GPU (vLLM, Kaggle)
 - [ ] Phase 5 : analyse (courbes exactitude / tokens, dynamique du débat, tests statistiques)
@@ -54,6 +54,49 @@ toutes les méthodes :
 MATH-500 sont toutes jugées correctes (`make check-grader`), et 27 cas d'équivalence et de
 pièges sont couverts par les tests.
 
+## Expériences et journalisation
+
+Une expérience est un fichier YAML ([configs/experiments/](configs/experiments/)) :
+
+```yaml
+name: dev_gsm8k_sampling
+dataset: gsm8k
+subset: configs/subsets/gsm8k_dev_30.txt
+method: sampling        # N réponses indépendantes (le débat arrive en phase 3)
+model: qwen2.5-instruct:1.5b
+n_samples: 5
+temperature: 0.7
+seed: 0                 # échantillon i généré avec la graine seed + i
+```
+
+`debate run <config>` écrit `results/<nom>.jsonl` : **un enregistrement par problème avec
+tous les appels au LLM** (texte, réponse extraite, correction, tokens d'entrée et de sortie,
+latence, troncature). Toutes les métriques se recalculent à partir de ce journal sans
+relancer le modèle. L'exécution est **reprenable** (les problèmes déjà traités sont sautés)
+et la configuration est sauvegardée à côté : une reprise avec des paramètres différents est
+refusée.
+
+**Méthodes de référence**, calculées à partir des mêmes N échantillons :
+- **réponse unique** : exactitude moyenne sur tous les échantillons ;
+- **vote@k** : vote majoritaire sur k échantillons, réponses équivalentes regroupées
+  (`0.5` et `\frac{1}{2}` comptent ensemble), moyenné sur 20 tirages de k échantillons
+  parmi N ;
+- **coût** : tokens par problème pour chaque k, qui servira à placer le débat sur la même
+  échelle.
+
+Essai de mise au point en local (`make dev-run` : Qwen2.5-1.5B sur CPU, 10 problèmes GSM8K
+× 5 échantillons, 12 minutes) — **à titre de vérification du pipeline uniquement**, 10
+problèmes ne permettent aucune conclusion :
+
+| k | vote@k | tokens / problème |
+| --- | --- | --- |
+| 1 | 57.5% | 399 |
+| 3 | 64.5% | 1197 |
+| 5 | 60.0% | 1995 |
+
+Aucune réponse non extraite ni tronquée ; le coût croît linéairement avec k (399 tokens par
+échantillon).
+
 ## Calcul
 
 | | Où | Serveur | Modèles |
@@ -75,6 +118,7 @@ make install
 make models                         # télécharge Qwen2.5-1.5B-Instruct pour Ollama
 make ping                           # vérifie la connexion au serveur LLM
 make check-grader                   # télécharge les données et valide le vérificateur
+make dev-run                        # essai local : 10 problèmes × 5 échantillons
 make test
 ```
 
