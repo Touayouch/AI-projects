@@ -10,8 +10,10 @@ from pathlib import Path
 
 from debate.config import get_settings
 from debate.data import load_problems, load_subset, make_subset
+from debate.experiment import ExperimentConfig, prepare_output, read_records, run_sampling
 from debate.grading import extract_answer, is_correct
 from debate.llm import LLMClient
+from debate.metrics import format_summary, summarize
 from debate.prompts import solve_prompt
 
 SUBSETS_DIR = Path("configs/subsets")
@@ -98,6 +100,28 @@ def cmd_solve(args: argparse.Namespace) -> None:
     print(f"\nExactitude : {correct}/{len(problems)}")
 
 
+def cmd_run(args: argparse.Namespace) -> None:
+    settings = get_settings()
+    config = ExperimentConfig.from_yaml(args.config)
+    problems = load_subset(config.dataset, settings.data_dir, config.subset)[: args.limit]
+    out_path = prepare_output(config, settings.results_dir)
+    client = LLMClient(
+        settings.llm_base_url,
+        settings.llm_api_key,
+        settings.request_timeout,
+        settings.max_concurrency,
+    )
+    asyncio.run(run_sampling(client, config, problems, out_path))
+    print(f"Résultats : {out_path}")
+
+
+def cmd_report(args: argparse.Namespace) -> None:
+    records = read_records(args.results)
+    n = min(len(r["calls"]) for r in records)
+    ks = args.ks or [k for k in (1, 2, 3, 4, 5, 8, 12, 16) if k <= n]
+    print(format_summary(args.results.stem, summarize(records, ks)))
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(prog="debate")
     sub = parser.add_subparsers(required=True)
@@ -125,9 +149,20 @@ def main() -> None:
     solve.add_argument("--model")
     solve.set_defaults(func=cmd_solve)
 
+    run = sub.add_parser("run", help="Lance ou reprend une expérience (fichier YAML)")
+    run.add_argument("config", type=Path)
+    run.add_argument("--limit", type=int, help="Nombre maximum de problèmes (essai)")
+    run.set_defaults(func=cmd_run)
+
+    report = sub.add_parser("report", help="Résumé d'une expérience")
+    report.add_argument("results", type=Path)
+    report.add_argument("--ks", type=int, nargs="+", help="Valeurs de k pour vote@k")
+    report.set_defaults(func=cmd_report)
+
     args = parser.parse_args()
     logging.basicConfig(level=get_settings().log_level)
-    logging.getLogger("httpx").setLevel(logging.WARNING)
+    for noisy in ("httpx", "httpx2", "openai"):
+        logging.getLogger(noisy).setLevel(logging.WARNING)
     args.func(args)
 
 

@@ -1,0 +1,10 @@
+# Mise au point locale (Ollama, CPU) : 10 problèmes × 5 échantillons
+name: dev_gsm8k_sampling
+dataset: gsm8k
+subset: configs/subsets/gsm8k_dev_30.txt
+method: sampling
+model: qwen2.5-instruct:1.5b
+n_samples: 5
+temperature: 0.7
+max_tokens: 2048
+seed: 0
