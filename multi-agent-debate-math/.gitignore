@@ -18,3 +18,4 @@ data/
 
 # Résultats de mise au point locale (seuls les résultats des vraies expériences sont versionnés)
 results/dev_*
+results/logs/

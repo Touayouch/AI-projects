@@ -25,7 +25,7 @@ analyse l'évolution des réponses au fil du débat.
 - [x] Phase 1 : données (GSM8K, MATH-500) et vérification des réponses
 - [x] Phase 2 : réponse unique, vote majoritaire, comptage des tokens
 - [x] Phase 3 : débat avec LangGraph, comparaison à budget égal
-- [ ] Phase 4 : expériences sur GPU (vLLM, Kaggle)
+- [x] Phase 4 : expériences sur GPU (vLLM, Kaggle) — infrastructure prête, exécution en cours
 - [ ] Phase 5 : analyse (courbes exactitude / tokens, dynamique du débat, tests statistiques)
 - [ ] Phase 6 : rapport final
 
@@ -160,15 +160,45 @@ correct→faux 3, faux→faux 9. Coût : 5 550 tokens par problème, soit l'équ
 devront générer jusqu'à ~32 échantillons par problème pour que la courbe du vote couvre le
 budget des débats.
 
-## Calcul
+## Expériences sur GPU (vLLM, Kaggle)
 
 | | Où | Serveur | Modèles |
 | --- | --- | --- | --- |
-| Développement | CPU local | Ollama | Qwen2.5-1.5B-Instruct |
-| Expériences | Kaggle (GPU T4, gratuit) | vLLM | modèles open-weight 1,5 à 3B |
+| Développement | CPU local | Ollama | Qwen2.5-1.5B-Instruct (GGUF) |
+| Expériences | Kaggle, 2 × T4 (gratuit) | vLLM, float16 | modèles open-weight en accès libre |
 
 Ollama et vLLM exposent tous deux une API compatible OpenAI : le même code tourne dans les
-deux environnements, seule `LLM_BASE_URL` change.
+deux environnements. vLLM servant un modèle par processus, `LLM_ENDPOINTS` associe chaque
+modèle à l'URL de son serveur (débat hétérogène).
+
+**Modèles** (licences Apache 2.0, sans demande d'accès ; Llama et Gemma, soumis à
+autorisation, sont écartés) : **Qwen2.5-1.5B-Instruct** pour l'essentiel des expériences ;
+**Granite-3.1-2B-Instruct** (IBM) et **SmolLM2-1.7B-Instruct** (HuggingFace) en plus pour le
+débat hétérogène — trois familles différentes, de taille comparable.
+
+**Grille d'expériences** ([configs/experiments/gpu/](configs/experiments/gpu/)), en 3 étapes
+([configs/stages.yaml](configs/stages.yaml)) :
+
+| Étape | GPU | Expériences |
+| --- | --- | --- |
+| `gsm8k` | T4 n°0 | 32 échantillons / problème, puis débats {2, 3, 5} agents × {2, 3} tours (tour 1 repris des échantillons) |
+| `math500` | T4 n°1 | idem sur MATH-500 |
+| `hetero` | 2 × T4 | 16 échantillons de Granite et de SmolLM, débat Qwen + Granite + SmolLM (3 agents × 3 tours) |
+
+32 échantillons par problème : un débat à 3 agents × 2 tours coûte déjà l'équivalent de ~14
+échantillons en tokens, la courbe du vote doit couvrir le budget des plus gros débats.
+
+**Exécution** : le notebook [kaggle/debate_experiments.ipynb](kaggle/debate_experiments.ipynb)
+installe vLLM, clone ce dépôt, restaure les résultats d'une session précédente, puis lance
+`debate stage <étape>` (serveurs vLLM + expériences, une étape par GPU en parallèle). Les
+sessions Kaggle étant limitées à 12 h, tout est **reprenable** : il suffit d'ajouter la
+version précédente du notebook en entrée et de relancer.
+
+Garde-fous vérifiés par les tests : chaque modèle utilisé est servi par l'étape, chaque tour 1
+réutilisé provient d'une expérience lancée avant, la mémoire GPU n'est pas surréservée, et le
+prompt le plus long possible (question + N réponses + génération) tient dans le contexte de
+chaque serveur — ce qui a imposé 1 024 tokens de génération pour l'étape hétérogène
+(contexte de SmolLM2 limité à 8 192 tokens).
 
 ## Installation
 
