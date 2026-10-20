@@ -1,0 +1,10 @@
+# Vote majoritaire : 16 échantillons de HuggingFaceTB/SmolLM2-1.7B-Instruct (référence du débat hétérogène)
+name: gsm8k_smollm17_sampling
+dataset: gsm8k
+subset: configs/subsets/gsm8k_500.txt
+method: sampling
+model: HuggingFaceTB/SmolLM2-1.7B-Instruct
+n_samples: 16
+temperature: 0.7
+max_tokens: 1024  # contexte de SmolLM2 limité à 8192 tokens
+seed: 0

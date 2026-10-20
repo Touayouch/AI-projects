@@ -1,0 +1,54 @@
+# Étapes d'expériences sur GPU (Kaggle, 2 × T4) : chaque étape lance ses serveurs vLLM puis
+# ses expériences dans l'ordre. Les étapes gsm8k et math500 utilisent chacune un GPU et
+# peuvent tourner en parallèle.
+gsm8k:
+  description: 'Qwen2.5-1.5B sur GSM8K : échantillonnage puis 6 débats'
+  servers:
+  - model: Qwen/Qwen2.5-1.5B-Instruct
+    port: 8001
+    gpu: 0
+    memory: 0.85
+  experiments:
+  - configs/experiments/gpu/gsm8k_qwen15_sampling.yaml
+  - configs/experiments/gpu/gsm8k_qwen15_debate_a2_r2.yaml
+  - configs/experiments/gpu/gsm8k_qwen15_debate_a2_r3.yaml
+  - configs/experiments/gpu/gsm8k_qwen15_debate_a3_r2.yaml
+  - configs/experiments/gpu/gsm8k_qwen15_debate_a3_r3.yaml
+  - configs/experiments/gpu/gsm8k_qwen15_debate_a5_r2.yaml
+  - configs/experiments/gpu/gsm8k_qwen15_debate_a5_r3.yaml
+math500:
+  description: 'Qwen2.5-1.5B sur MATH-500 : échantillonnage puis 6 débats'
+  servers:
+  - model: Qwen/Qwen2.5-1.5B-Instruct
+    port: 8002
+    gpu: 1
+    memory: 0.85
+  experiments:
+  - configs/experiments/gpu/math500_qwen15_sampling.yaml
+  - configs/experiments/gpu/math500_qwen15_debate_a2_r2.yaml
+  - configs/experiments/gpu/math500_qwen15_debate_a2_r3.yaml
+  - configs/experiments/gpu/math500_qwen15_debate_a3_r2.yaml
+  - configs/experiments/gpu/math500_qwen15_debate_a3_r3.yaml
+  - configs/experiments/gpu/math500_qwen15_debate_a5_r2.yaml
+  - configs/experiments/gpu/math500_qwen15_debate_a5_r3.yaml
+hetero:
+  description: Débat hétérogène sur GSM8K (Qwen, Granite, SmolLM) ; nécessite l'étape
+    gsm8k pour la comparaison
+  servers:
+  - model: Qwen/Qwen2.5-1.5B-Instruct
+    port: 8001
+    gpu: 0
+    memory: 0.4
+  - model: ibm-granite/granite-3.1-2b-instruct
+    port: 8003
+    gpu: 0
+    memory: 0.45
+  - model: HuggingFaceTB/SmolLM2-1.7B-Instruct
+    port: 8004
+    gpu: 1
+    memory: 0.85
+    max_model_len: 8192
+  experiments:
+  - configs/experiments/gpu/gsm8k_granite2b_sampling.yaml
+  - configs/experiments/gpu/gsm8k_smollm17_sampling.yaml
+  - configs/experiments/gpu/gsm8k_hetero_debate_a3_r3.yaml

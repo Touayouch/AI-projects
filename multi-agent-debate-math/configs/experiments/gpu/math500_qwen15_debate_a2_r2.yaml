@@ -1,0 +1,12 @@
+# Débat homogène 2 agents × 2 tours ; tour 1 = 2 premiers échantillons de math500_qwen15_sampling
+name: math500_qwen15_debate_a2_r2
+dataset: math500
+subset: configs/subsets/math500_500.txt
+method: debate
+model: Qwen/Qwen2.5-1.5B-Instruct
+n_agents: 2
+n_rounds: 2
+initial_answers: results/math500_qwen15_sampling.jsonl
+temperature: 0.7
+max_tokens: 2048
+seed: 0

@@ -1,0 +1,15 @@
+# Débat hétérogène : 3 agents de familles différentes × 3 tours (tour 1 généré)
+name: gsm8k_hetero_debate_a3_r3
+dataset: gsm8k
+subset: configs/subsets/gsm8k_500.txt
+method: debate
+model: Qwen/Qwen2.5-1.5B-Instruct
+models:
+- Qwen/Qwen2.5-1.5B-Instruct
+- ibm-granite/granite-3.1-2b-instruct
+- HuggingFaceTB/SmolLM2-1.7B-Instruct
+n_agents: 3
+n_rounds: 3
+temperature: 0.7
+max_tokens: 1024  # contexte de SmolLM2 limité à 8192 tokens
+seed: 0

@@ -1,0 +1,10 @@
+# Vote majoritaire : 32 échantillons indépendants par problème (gsm8k)
+name: gsm8k_qwen15_sampling
+dataset: gsm8k
+subset: configs/subsets/gsm8k_500.txt
+method: sampling
+model: Qwen/Qwen2.5-1.5B-Instruct
+n_samples: 32
+temperature: 0.7
+max_tokens: 2048
+seed: 0

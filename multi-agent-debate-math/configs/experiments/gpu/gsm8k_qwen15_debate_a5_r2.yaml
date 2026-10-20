@@ -1,0 +1,12 @@
+# Débat homogène 5 agents × 2 tours ; tour 1 = 5 premiers échantillons de gsm8k_qwen15_sampling
+name: gsm8k_qwen15_debate_a5_r2
+dataset: gsm8k
+subset: configs/subsets/gsm8k_500.txt
+method: debate
+model: Qwen/Qwen2.5-1.5B-Instruct
+n_agents: 5
+n_rounds: 2
+initial_answers: results/gsm8k_qwen15_sampling.jsonl
+temperature: 0.7
+max_tokens: 2048
+seed: 0
