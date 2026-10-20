@@ -79,3 +79,19 @@ async def test_concurrency_is_limited():
         *(client.complete([{"role": "user", "content": "q"}], model="m") for _ in range(6))
     )
     assert peak <= 2
+
+
+async def test_requests_are_routed_by_model():
+    hosts = []
+
+    def handler(request):
+        hosts.append((request.url.host, json.loads(request.content)["model"]))
+        return httpx.Response(200, json=chat_response("ok"))
+
+    http_client = httpx.AsyncClient(transport=httpx.MockTransport(handler))
+    client = LLMClient(
+        "http://default/v1", http_client=http_client, endpoints={"b": "http://server-b/v1"}
+    )
+    await client.complete([{"role": "user", "content": "q"}], model="a")
+    await client.complete([{"role": "user", "content": "q"}], model="b")
+    assert hosts == [("default", "a"), ("server-b", "b")]

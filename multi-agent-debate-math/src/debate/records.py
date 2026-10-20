@@ -1,5 +1,6 @@
 """Format des enregistrements : un appel au LLM, et lecture des journaux JSONL."""
 
+import gzip
 import json
 from pathlib import Path
 
@@ -23,7 +24,15 @@ def call_record(completion: Completion, seed: int, gold: str, dataset: str) -> d
 
 
 def read_records(path: Path) -> list[dict]:
+    """Lit un journal JSONL, compressé ou non (``x.jsonl`` ou ``x.jsonl.gz``)."""
+    path = Path(path)
+    if path.suffix != ".gz" and not path.exists():
+        path = path.with_name(path.name + ".gz")  # version compressée éventuelle
     if not path.exists():
         return []
-    with path.open(encoding="utf-8") as f:
-        return [json.loads(line) for line in f if line.strip()]
+    if path.suffix == ".gz":
+        with gzip.open(path, "rt", encoding="utf-8") as f:
+            lines = f.readlines()
+    else:
+        lines = path.read_text(encoding="utf-8").splitlines()
+    return [json.loads(line) for line in lines if line.strip()]

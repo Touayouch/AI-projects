@@ -13,6 +13,9 @@ class Settings(BaseSettings):
     llm_base_url: str = "http://localhost:11434/v1"
     llm_api_key: str = "EMPTY"
     default_model: str = "qwen2.5-instruct:1.5b"
+    # Un serveur par modèle (débat hétérogène sur vLLM), en JSON :
+    # LLM_ENDPOINTS='{"Qwen/Qwen2.5-1.5B-Instruct": "http://localhost:8001/v1", ...}'
+    llm_endpoints: dict[str, str] = {}
 
     # Échantillonnage : une température > 0 est nécessaire pour que le vote et le débat
     # disposent de réponses diverses

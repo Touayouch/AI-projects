@@ -32,6 +32,10 @@ class Completion:
 
 
 class LLMClient:
+    """``endpoints`` associe un modèle à l'URL de son serveur : vLLM servant un seul modèle
+    par processus, un débat hétérogène interroge plusieurs serveurs. Les modèles absents de
+    ``endpoints`` sont envoyés à ``base_url``."""
+
     def __init__(
         self,
         base_url: str,
@@ -39,10 +43,15 @@ class LLMClient:
         timeout: float = 600.0,
         max_concurrency: int = 8,
         http_client: httpx.AsyncClient | None = None,
+        endpoints: dict[str, str] | None = None,
     ):
-        self.client = AsyncOpenAI(
-            base_url=base_url, api_key=api_key, timeout=timeout, http_client=http_client
-        )
+        def make(url: str) -> AsyncOpenAI:
+            return AsyncOpenAI(
+                base_url=url, api_key=api_key, timeout=timeout, http_client=http_client
+            )
+
+        self.client = make(base_url)
+        self.clients = {model: make(url) for model, url in (endpoints or {}).items()}
         # Limite le nombre de requêtes simultanées envoyées au serveur
         self.semaphore = asyncio.Semaphore(max_concurrency)
 
@@ -56,7 +65,8 @@ class LLMClient:
     ) -> Completion:
         async with self.semaphore:
             start = time.perf_counter()
-            response = await self.client.chat.completions.create(
+            client = self.clients.get(model, self.client)
+            response = await client.chat.completions.create(
                 model=model,
                 messages=messages,
                 temperature=temperature,
