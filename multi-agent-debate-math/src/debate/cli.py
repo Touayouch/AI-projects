@@ -10,11 +10,19 @@ from pathlib import Path
 
 from debate.config import get_settings
 from debate.data import load_problems, load_subset, make_subset
-from debate.experiment import ExperimentConfig, prepare_output, read_records, run_sampling
+from debate.experiment import ExperimentConfig, prepare_output, run_experiment
 from debate.grading import extract_answer, is_correct
 from debate.llm import LLMClient
-from debate.metrics import format_summary, summarize
+from debate.metrics import (
+    compare_at_budget,
+    debate_summary,
+    format_comparison,
+    format_debate,
+    format_summary,
+    summarize,
+)
 from debate.prompts import solve_prompt
+from debate.records import read_records
 
 SUBSETS_DIR = Path("configs/subsets")
 
@@ -111,15 +119,24 @@ def cmd_run(args: argparse.Namespace) -> None:
         settings.request_timeout,
         settings.max_concurrency,
     )
-    asyncio.run(run_sampling(client, config, problems, out_path))
+    asyncio.run(run_experiment(client, config, problems, out_path))
     print(f"Résultats : {out_path}")
 
 
 def cmd_report(args: argparse.Namespace) -> None:
     records = read_records(args.results)
+    if records[0]["method"] == "debate":
+        print(format_debate(args.results.stem, debate_summary(records)))
+        return
     n = min(len(r["calls"]) for r in records)
     ks = args.ks or [k for k in (1, 2, 3, 4, 5, 8, 12, 16) if k <= n]
     print(format_summary(args.results.stem, summarize(records, ks)))
+
+
+def cmd_compare(args: argparse.Namespace) -> None:
+    comparison = compare_at_budget(read_records(args.debate), read_records(args.sampling))
+    print(format_debate(args.debate.stem, comparison["debate"]))
+    print(format_comparison(comparison))
 
 
 def main() -> None:
@@ -158,6 +175,11 @@ def main() -> None:
     report.add_argument("results", type=Path)
     report.add_argument("--ks", type=int, nargs="+", help="Valeurs de k pour vote@k")
     report.set_defaults(func=cmd_report)
+
+    compare = sub.add_parser("compare", help="Compare un débat au vote à budget égal")
+    compare.add_argument("debate", type=Path)
+    compare.add_argument("sampling", type=Path)
+    compare.set_defaults(func=cmd_compare)
 
     args = parser.parse_args()
     logging.basicConfig(level=get_settings().log_level)
