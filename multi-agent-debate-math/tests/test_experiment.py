@@ -1,9 +1,10 @@
 import pytest
 
 from debate.data import Problem
-from debate.experiment import ExperimentConfig, prepare_output, read_records, run_sampling
+from debate.experiment import ExperimentConfig, prepare_output, run_experiment
 from debate.llm import Completion
 from debate.metrics import summarize, vote_accuracy
+from debate.records import read_records
 
 
 class FakeClient:
@@ -39,7 +40,7 @@ async def test_run_sampling_logs_every_call(tmp_path):
     cfg = config(tmp_path)
     out = prepare_output(cfg, tmp_path)
     client = FakeClient()
-    await run_sampling(client, cfg, PROBLEMS, out)
+    await run_experiment(client, cfg, PROBLEMS, out)
 
     records = read_records(out)
     assert sorted(r["problem_id"] for r in records) == ["p0", "p1", "p2"]
@@ -53,9 +54,9 @@ async def test_run_sampling_logs_every_call(tmp_path):
 async def test_run_sampling_resumes(tmp_path):
     cfg = config(tmp_path)
     out = prepare_output(cfg, tmp_path)
-    await run_sampling(FakeClient(), cfg, PROBLEMS[:2], out)
+    await run_experiment(FakeClient(), cfg, PROBLEMS[:2], out)
     client = FakeClient()
-    assert await run_sampling(client, cfg, PROBLEMS, out) == 1
+    assert await run_experiment(client, cfg, PROBLEMS, out) == 1
     assert len(client.calls) == 3  # seul p2 est traité
     assert len(read_records(out)) == 3
 
@@ -70,7 +71,7 @@ def test_changed_config_is_refused(tmp_path):
 async def test_metrics(tmp_path):
     cfg = config(tmp_path)
     out = prepare_output(cfg, tmp_path)
-    await run_sampling(FakeClient(), cfg, PROBLEMS, out)
+    await run_experiment(FakeClient(), cfg, PROBLEMS, out)
     records = read_records(out)
 
     assert vote_accuracy(records[0], 3) == 1.0  # 2 voix sur 3 pour la bonne réponse
