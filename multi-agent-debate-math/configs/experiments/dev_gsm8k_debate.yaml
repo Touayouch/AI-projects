@@ -1,0 +1,13 @@
+# Mise au point locale (Ollama, CPU) : débat 3 agents × 2 tours sur les 10 mêmes problèmes
+# que dev_gsm8k_sampling ; le tour 1 reprend ses 3 premiers échantillons
+name: dev_gsm8k_debate
+dataset: gsm8k
+subset: configs/subsets/gsm8k_dev_30.txt
+method: debate
+model: qwen2.5-instruct:1.5b
+n_agents: 3
+n_rounds: 2
+temperature: 0.7
+max_tokens: 2048
+seed: 0
+initial_answers: results/dev_gsm8k_sampling.jsonl

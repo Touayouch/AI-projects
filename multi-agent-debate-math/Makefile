@@ -27,3 +27,5 @@ check-grader:
 dev-run:
 	uv run debate run configs/experiments/dev_gsm8k_sampling.yaml --limit 10
 	uv run debate report results/dev_gsm8k_sampling.jsonl
+	uv run debate run configs/experiments/dev_gsm8k_debate.yaml --limit 10
+	uv run debate compare results/dev_gsm8k_debate.jsonl results/dev_gsm8k_sampling.jsonl

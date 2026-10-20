@@ -24,7 +24,7 @@ analyse l'évolution des réponses au fil du débat.
 - [x] Phase 0 : setup (client LLM compatible OpenAI, configuration, CI)
 - [x] Phase 1 : données (GSM8K, MATH-500) et vérification des réponses
 - [x] Phase 2 : réponse unique, vote majoritaire, comptage des tokens
-- [ ] Phase 3 : débat avec LangGraph, comparaison à budget égal
+- [x] Phase 3 : débat avec LangGraph, comparaison à budget égal
 - [ ] Phase 4 : expériences sur GPU (vLLM, Kaggle)
 - [ ] Phase 5 : analyse (courbes exactitude / tokens, dynamique du débat, tests statistiques)
 - [ ] Phase 6 : rapport final
@@ -96,6 +96,69 @@ problèmes ne permettent aucune conclusion :
 
 Aucune réponse non extraite ni tronquée ; le coût croît linéairement avec k (399 tokens par
 échantillon).
+
+## Débat multi-agents (LangGraph)
+
+```mermaid
+graph LR
+    S([problème]) --> D{dispatch}
+    D -- Send agent 0 --> A[agent]
+    D -- Send agent 1 --> A
+    D -- Send agent N-1 --> A
+    A --> C[collect]
+    C -- tour < R --> D
+    C -- tour = R --> V[vote majoritaire<br/>du dernier tour]
+```
+
+- **Tour 1** : chaque agent résout seul le problème, avec la même consigne que
+  l'échantillonnage. Avec `initial_answers`, le tour 1 **reprend les N premiers
+  échantillons** d'une expérience de vote au lieu de les régénérer : débat et vote partent
+  exactement des mêmes réponses initiales, ce qui isole l'effet des tours de révision (et
+  économise du calcul ; leurs tokens restent comptés dans le coût du débat). Fixer la même
+  graine ne suffit pas : un serveur qui regroupe les requêtes en batch ne produit pas des
+  sorties identiques d'une exécution à l'autre (0 réponse identique sur 30 lors d'un essai).
+- **Tour r > 1** : chaque agent relit sa propre réponse et celles des autres agents au
+  tour r-1, puis donne une réponse révisée (protocole de Du et al., 2023). Seul le tour
+  précédent est conservé dans le contexte, pour que la longueur du prompt ne croisse pas avec
+  le nombre de tours.
+- **Parallélisme** : `dispatch` envoie un message `Send` par agent ; les N agents d'un tour
+  s'exécutent en parallèle et leurs réponses sont fusionnées par un *reducer*, puis triées
+  par agent (l'ordre d'arrivée n'étant pas garanti).
+- **Débat hétérogène** : `models: [qwen, llama, gemma]` attribue un modèle par agent
+  (répété cycliquement si N dépasse la liste).
+
+**Mesures** (`debate report`) : exactitude finale, exactitude par tour (vote des agents et
+agent moyen), taux d'unanimité, **transitions entre tours** (correct→faux, faux→correct...)
+et coût en tokens.
+
+### Comparaison à budget égal
+
+`debate compare <débat> <échantillonnage>` place le débat sur la courbe du vote :
+
+1. coût du débat = somme des tokens de tous ses appels (entrée + sortie), moyenné par
+   problème ;
+2. k équivalent = coût du débat / coût moyen d'un échantillon indépendant ;
+3. exactitude du vote à ce budget = interpolation linéaire de la courbe vote@k (sans
+   extrapolation au-delà du plus grand k mesuré).
+
+Deux budgets sont rapportés : **tokens totaux** (entrée + sortie, ce que coûte réellement le
+débat, dont les prompts gonflent avec les réponses des autres) et **tokens générés**
+seulement (plus favorable au débat).
+
+Essai de mise au point en local (`make dev-run` : Qwen2.5-1.5B, 10 problèmes GSM8K, débat
+3 agents × 2 tours dont le tour 1 reprend l'échantillonnage) — **vérification du pipeline
+uniquement**, sans valeur statistique :
+
+| Tour | vote des agents | agent moyen | unanimité |
+| --- | --- | --- | --- |
+| 1 | 60.0% | 50.0% | 10.0% |
+| 2 | 50.0% | 60.0% | 50.0% |
+
+Transitions tour 1 → 2 (30 réponses d'agents) : correct→correct 12, faux→correct 6,
+correct→faux 3, faux→faux 9. Coût : 5 550 tokens par problème, soit l'équivalent de **14
+échantillons indépendants** en tokens totaux (6 en tokens générés) : les expériences sur GPU
+devront générer jusqu'à ~32 échantillons par problème pour que la courbe du vote couvre le
+budget des débats.
 
 ## Calcul
 
