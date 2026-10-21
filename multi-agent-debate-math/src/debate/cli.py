@@ -134,6 +134,21 @@ def make_client(endpoints: dict[str, str] | None = None) -> LLMClient:
     )
 
 
+def run_configs(paths: list[Path], endpoints: dict[str, str] | None = None) -> None:
+    """Lance des expériences l'une après l'autre.
+
+    Chaque expérience a sa propre boucle asyncio (asyncio.run) et donc son propre client :
+    le sémaphore et les connexions HTTP d'un client restent liés à la boucle qui les a
+    utilisés, et un client réutilisé fait échouer l'expérience suivante.
+    """
+    settings = get_settings()
+    for path in paths:
+        config = ExperimentConfig.from_yaml(path)
+        problems = load_subset(config.dataset, settings.data_dir, config.subset)
+        out_path = prepare_output(config, settings.results_dir)
+        asyncio.run(run_experiment(make_client(endpoints), config, problems, out_path))
+
+
 def cmd_stage(args: argparse.Namespace) -> None:
     """Lance les serveurs vLLM de l'étape, puis ses expériences dans l'ordre (reprenables)."""
     from debate.serving import load_stage, start_server, wait_until_ready
@@ -147,12 +162,7 @@ def cmd_stage(args: argparse.Namespace) -> None:
             processes = [start_server(s, settings.results_dir / "logs") for s in stage.servers]
             for spec, process in zip(stage.servers, processes, strict=True):
                 wait_until_ready(spec, process)
-        client = make_client(stage.endpoints)
-        for path in stage.experiments:
-            config = ExperimentConfig.from_yaml(path)
-            problems = load_subset(config.dataset, settings.data_dir, config.subset)
-            out_path = prepare_output(config, settings.results_dir)
-            asyncio.run(run_experiment(client, config, problems, out_path))
+        run_configs(stage.experiments, stage.endpoints)
     finally:
         for process in processes:
             process.terminate()
@@ -160,11 +170,14 @@ def cmd_stage(args: argparse.Namespace) -> None:
 
 def cmd_report(args: argparse.Namespace) -> None:
     records = read_records(args.results)
+    if not records:
+        print(f"{args.results} : aucun résultat")
+        return
     if records[0]["method"] == "debate":
         print(format_debate(args.results.stem, debate_summary(records)))
         return
     n = min(len(r["calls"]) for r in records)
-    ks = args.ks or [k for k in (1, 2, 3, 4, 5, 8, 12, 16) if k <= n]
+    ks = args.ks or [k for k in (1, 2, 3, 4, 5, 8, 12, 16, 24, 32) if k <= n]
     print(format_summary(args.results.stem, summarize(records, ks)))
 
 
