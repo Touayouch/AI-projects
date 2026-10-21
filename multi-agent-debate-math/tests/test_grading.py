@@ -77,3 +77,12 @@ def test_is_correct_end_to_end():
     response = "Step 1: 16 - 3 - 4 = 9. Step 2: 9 * 2 = 18.\nSo she makes \\boxed{\\$18}."
     assert is_correct(response, "18", "gsm8k")
     assert not is_correct(response, "20", "gsm8k")
+
+
+def test_math_equivalence_outside_main_thread():
+    """Régression : math-verify levait une erreur hors du thread principal (signal.alarm)."""
+    from concurrent.futures import ThreadPoolExecutor
+
+    with ThreadPoolExecutor(1) as pool:
+        assert pool.submit(equivalent, r"\frac{1}{2}", "0.5", "math500").result()
+        assert not pool.submit(equivalent, r"\frac{1}{2}", "0.4", "math500").result()

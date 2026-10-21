@@ -12,6 +12,7 @@ une différence d'extraction entre méthodes fausserait la comparaison.
 """
 
 import re
+import threading
 from functools import lru_cache
 
 from math_verify import parse, verify
@@ -64,9 +65,16 @@ def to_number(answer: str) -> float | None:
     return float(match.group()) if match else None
 
 
+def _in_main_thread() -> bool:
+    return threading.current_thread() is threading.main_thread()
+
+
+# math-verify borne le temps de calcul avec signal.alarm(), disponible uniquement dans le
+# thread principal ; ailleurs, il lève une erreur. Dans un autre thread, on désactive ce
+# délai plutôt que de faire échouer l'expérience.
 @lru_cache(maxsize=50_000)
-def _parse_latex(answer: str):
-    return parse(f"${answer}$")
+def _parse_latex(answer: str, timeout: bool = True):
+    return parse(f"${answer}$", parsing_timeout=5 if timeout else None)
 
 
 def equivalent(gold: str, prediction: str, dataset: str) -> bool:
@@ -77,7 +85,12 @@ def equivalent(gold: str, prediction: str, dataset: str) -> bool:
     if dataset == "gsm8k":
         a, b = to_number(gold), to_number(prediction)
         return a is not None and b is not None and abs(a - b) < 1e-6
-    return verify(_parse_latex(gold), _parse_latex(prediction))
+    main = _in_main_thread()
+    return verify(
+        _parse_latex(gold, main),
+        _parse_latex(prediction, main),
+        timeout_seconds=5 if main else None,
+    )
 
 
 def is_correct(response: str, gold: str, dataset: str) -> bool:

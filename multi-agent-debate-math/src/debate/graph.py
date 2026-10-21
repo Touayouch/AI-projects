@@ -116,7 +116,9 @@ def build_debate_graph(client: LLMClient, settings: DebateSettings):
             return dispatch(state)
         return "aggregate"
 
-    def aggregate(state: DebateState) -> DebateState:
+    # async : LangGraph exécute les nœuds synchrones dans un pool de threads, or math-verify
+    # (utilisé par le vote sur MATH-500) ne fonctionne que dans le thread principal
+    async def aggregate(state: DebateState) -> DebateState:
         problem = state["problem"]
         answer, _ = majority_vote([c["answer"] for c in state["rounds"][-1]], problem.dataset)
         return {"final_answer": answer}

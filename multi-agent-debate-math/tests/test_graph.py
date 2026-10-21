@@ -183,3 +183,28 @@ def test_initial_answers_require_same_model(tmp_path):
     )
     with pytest.raises(ValueError, match="autre modèle"):
         load_initial_answers(config)
+
+
+async def test_math_debate_votes_with_math_verify():
+    """Régression : le vote final sur MATH-500 se bloquait (math-verify hors thread principal)."""
+
+    class LatexClient:
+        async def complete(self, messages, model, temperature=0.7, max_tokens=1024, seed=None):
+            answer = [r"\frac{1}{2}", "0.5", r"\dfrac{2}{4}"][seed % 3]
+            return Completion(
+                text=f"\\boxed{{{answer}}}",
+                model=model,
+                prompt_tokens=5,
+                completion_tokens=5,
+                latency_s=0,
+                finish_reason="stop",
+            )
+
+    problem = Problem(id="m0", dataset="math500", question="Q", answer=r"\frac{1}{2}")
+    graph = build_debate_graph(LatexClient(), settings())
+    state = await asyncio.wait_for(graph.ainvoke({"problem": problem}), timeout=30)
+    # les 3 écritures équivalentes forment un seul groupe : vote unanime pour 1/2
+    from debate.grading import equivalent
+
+    assert equivalent(r"\frac{1}{2}", state["final_answer"], "math500")
+    assert all(c["correct"] for c in state["rounds"][-1])
