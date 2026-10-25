@@ -36,3 +36,28 @@ def read_records(path: Path) -> list[dict]:
     else:
         lines = path.read_text(encoding="utf-8").splitlines()
     return [json.loads(line) for line in lines if line.strip()]
+
+
+def repair_jsonl(path: Path) -> int:
+    """Retire une dernière ligne incomplète (processus tué pendant l'écriture) ; le problème
+    correspondant sera simplement refait à la reprise. Renvoie le nombre d'octets retirés."""
+    if not path.exists() or path.stat().st_size == 0:
+        return 0
+    data = path.read_bytes()
+    if data.endswith(b"\n"):
+        try:
+            json.loads(data.rsplit(b"\n", 2)[-2])
+            return 0
+        except (ValueError, IndexError):
+            pass
+    lines = data.split(b"\n")
+    kept = [line for line in lines if line.strip()]
+    while kept:
+        try:
+            json.loads(kept[-1])
+            break
+        except ValueError:
+            kept.pop()
+    repaired = b"".join(line + b"\n" for line in kept)
+    path.write_bytes(repaired)
+    return len(data) - len(repaired)

@@ -16,22 +16,26 @@ def test_server_command_uses_half_precision_for_t4():
 
 
 def test_all_stages_are_consistent():
-    for name in ("gsm8k", "math500", "hetero"):
+    for name in ("gsm8k", "math500", "math500_a5", "hetero"):
         stage = load_stage(name, ROOT / "configs" / "stages.yaml")
         served = set(stage.endpoints)
         for path in stage.experiments:
             config = ExperimentConfig.from_yaml(ROOT / path)
             # chaque modèle utilisé par une expérience est servi par l'étape
             assert set(config.agent_models()) <= served, (name, path)
-            # le tour 1 réutilisé provient d'une expérience lancée avant dans la même étape
+            # le tour 1 réutilisé provient d'une expérience lancée avant dans la même étape,
+            # ou d'une étape déclarée comme prérequis
             if config.initial_answers:
                 source = config.initial_answers.name.removesuffix(".jsonl")
                 earlier = [p.stem for p in stage.experiments[: stage.experiments.index(path)]]
+                for required in stage.requires:
+                    required_stage = load_stage(required, ROOT / "configs" / "stages.yaml")
+                    earlier += [p.stem for p in required_stage.experiments]
                 assert source in earlier, (name, path)
 
 
 def test_gpu_memory_is_not_overcommitted():
-    for name in ("gsm8k", "math500", "hetero"):
+    for name in ("gsm8k", "math500", "math500_a5", "hetero"):
         stage = load_stage(name, ROOT / "configs" / "stages.yaml")
         for gpu in {s.gpu for s in stage.servers}:
             assert sum(s.memory for s in stage.servers if s.gpu == gpu) <= 0.9
@@ -40,7 +44,7 @@ def test_gpu_memory_is_not_overcommitted():
 
 def test_debate_prompts_fit_in_server_context():
     """Pire cas : question + propre réponse + réponses des autres + nouvelle génération."""
-    for name in ("gsm8k", "math500", "hetero"):
+    for name in ("gsm8k", "math500", "math500_a5", "hetero"):
         stage = load_stage(name, ROOT / "configs" / "stages.yaml")
         context = {s.model: s.max_model_len for s in stage.servers}
         for path in stage.experiments:

@@ -24,7 +24,7 @@ from pydantic import BaseModel, Field
 from debate.data import DatasetName, Problem
 from debate.llm import LLMClient
 from debate.prompts import solve_prompt
-from debate.records import call_record, read_records
+from debate.records import call_record, read_records, repair_jsonl
 
 logger = logging.getLogger(__name__)
 
@@ -75,7 +75,10 @@ def prepare_output(config: ExperimentConfig, results_dir: Path) -> Path:
             )
     else:
         config_path.write_text(config.to_yaml())
-    return results_dir / f"{config.name}.jsonl"
+    out_path = results_dir / f"{config.name}.jsonl"
+    if removed := repair_jsonl(out_path):
+        logger.warning("%s : dernière ligne incomplète retirée (%d octets)", out_path, removed)
+    return out_path
 
 
 async def sample_problem(client: LLMClient, config: ExperimentConfig, problem: Problem) -> dict:

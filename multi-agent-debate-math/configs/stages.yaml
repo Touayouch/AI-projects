@@ -1,6 +1,6 @@
 # Étapes d'expériences sur GPU (Kaggle, 2 × T4) : chaque étape lance ses serveurs vLLM puis
-# ses expériences dans l'ordre. Les étapes gsm8k et math500 utilisent chacune un GPU et
-# peuvent tourner en parallèle.
+# ses expériences dans l'ordre, et chacune tient dans une session de 12 h.
+# Session 1 : gsm8k (GPU 0) + math500 (GPU 1) ; session 2 : math500_a5 ; session 3 : hetero.
 gsm8k:
   description: 'Qwen2.5-1.5B sur GSM8K : échantillonnage puis 6 débats'
   servers:
@@ -17,7 +17,7 @@ gsm8k:
   - configs/experiments/gpu/gsm8k_qwen15_debate_a5_r2.yaml
   - configs/experiments/gpu/gsm8k_qwen15_debate_a5_r3.yaml
 math500:
-  description: 'Qwen2.5-1.5B sur MATH-500 : échantillonnage puis 6 débats'
+  description: 'Qwen2.5-1.5B sur MATH-500 : échantillonnage puis débats à 2 et 3 agents'
   servers:
   - model: Qwen/Qwen2.5-1.5B-Instruct
     port: 8002
@@ -29,6 +29,17 @@ math500:
   - configs/experiments/gpu/math500_qwen15_debate_a2_r3.yaml
   - configs/experiments/gpu/math500_qwen15_debate_a3_r2.yaml
   - configs/experiments/gpu/math500_qwen15_debate_a3_r3.yaml
+math500_a5:
+  description: Débats à 5 agents sur MATH-500 (les plus longs) ; nécessite l'échantillonnage
+    de l'étape math500
+  requires:
+  - math500
+  servers:
+  - model: Qwen/Qwen2.5-1.5B-Instruct
+    port: 8002
+    gpu: 1
+    memory: 0.85
+  experiments:
   - configs/experiments/gpu/math500_qwen15_debate_a5_r2.yaml
   - configs/experiments/gpu/math500_qwen15_debate_a5_r3.yaml
 hetero:

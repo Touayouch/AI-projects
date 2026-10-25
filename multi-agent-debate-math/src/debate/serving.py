@@ -9,7 +9,7 @@ import os
 import subprocess
 import time
 import urllib.request
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 
 import yaml
@@ -53,6 +53,7 @@ class Stage:
     description: str
     servers: list[ServerSpec]
     experiments: list[Path]
+    requires: list[str] = field(default_factory=list)  # étapes à exécuter avant
 
     @property
     def endpoints(self) -> dict[str, str]:
@@ -69,6 +70,7 @@ def load_stage(name: str, path: Path = Path("configs/stages.yaml")) -> Stage:
         description=spec["description"],
         servers=[ServerSpec(**s) for s in spec["servers"]],
         experiments=[Path(p) for p in spec["experiments"]],
+        requires=spec.get("requires", []),
     )
 
 
