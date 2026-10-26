@@ -10,7 +10,12 @@ from pathlib import Path
 
 from debate.config import get_settings
 from debate.data import load_problems, load_subset, make_subset
-from debate.experiment import ExperimentConfig, prepare_output, run_experiment
+from debate.experiment import (
+    ExperimentConfig,
+    ExperimentIncomplete,
+    prepare_output,
+    run_experiment,
+)
 from debate.grading import extract_answer, is_correct
 from debate.llm import LLMClient
 from debate.metrics import (
@@ -142,11 +147,19 @@ def run_configs(paths: list[Path], endpoints: dict[str, str] | None = None) -> N
     utilisés, et un client réutilisé fait échouer l'expérience suivante.
     """
     settings = get_settings()
+    incomplete = []
     for path in paths:
         config = ExperimentConfig.from_yaml(path)
         problems = load_subset(config.dataset, settings.data_dir, config.subset)
         out_path = prepare_output(config, settings.results_dir)
-        asyncio.run(run_experiment(make_client(endpoints), config, problems, out_path))
+        try:
+            asyncio.run(run_experiment(make_client(endpoints), config, problems, out_path))
+        except ExperimentIncomplete as exc:
+            # On passe à l'expérience suivante ; la relance de l'étape complétera celle-ci
+            logging.getLogger("debate").warning("%s", exc)
+            incomplete.append(config.name)
+    if incomplete:
+        raise SystemExit(f"Expériences incomplètes, à relancer : {', '.join(incomplete)}")
 
 
 def cmd_stage(args: argparse.Namespace) -> None:

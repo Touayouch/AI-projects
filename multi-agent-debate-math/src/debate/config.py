@@ -23,7 +23,9 @@ class Settings(BaseSettings):
     max_tokens: int = 2048  # 1024 tronquait certaines solutions de MATH-500
     seed: int = 0
 
-    request_timeout: float = 600.0
+    # Sur un T4 saturé, une requête progresse à 2-4 tokens/s : une réponse de 2048 tokens
+    # peut dépasser 10 minutes. Le délai couvre ce cas sans abandonner la requête.
+    request_timeout: float = 1800.0
     max_concurrency: int = 8  # requêtes simultanées (vLLM les regroupe en batch)
 
     data_dir: Path = Path("data")

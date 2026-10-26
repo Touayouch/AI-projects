@@ -81,3 +81,27 @@ async def test_metrics(tmp_path):
     assert summary["vote"][3]["accuracy"] == 1.0
     assert summary["vote"][3]["tokens_per_problem"] == 3 * 150
     assert summary["no_answer_rate"] == 0
+
+
+class FailingOnceClient(FakeClient):
+    """Échoue pour le problème « Q1 » (délai dépassé simulé)."""
+
+    async def complete(self, messages, model, temperature=0.7, max_tokens=1024, seed=None):
+        if messages[0]["content"].startswith("Q1"):
+            raise TimeoutError("Request timed out.")
+        return await super().complete(messages, model, temperature, max_tokens, seed)
+
+
+async def test_failed_problem_is_skipped_then_resumed(tmp_path):
+    from debate.experiment import ExperimentIncomplete
+
+    cfg = config(tmp_path)
+    out = prepare_output(cfg, tmp_path)
+    with pytest.raises(ExperimentIncomplete, match="1 problème"):
+        await run_experiment(FailingOnceClient(), cfg, PROBLEMS, out)
+    assert sorted(r["problem_id"] for r in read_records(out)) == ["p0", "p2"]
+
+    client = FakeClient()
+    await run_experiment(client, cfg, PROBLEMS, out)  # la reprise ne traite que p1
+    assert len(client.calls) == cfg.n_samples
+    assert sorted(r["problem_id"] for r in read_records(out)) == ["p0", "p1", "p2"]

@@ -28,6 +28,11 @@ from debate.records import call_record, read_records, repair_jsonl
 
 logger = logging.getLogger(__name__)
 
+
+class ExperimentIncomplete(RuntimeError):
+    """Des problèmes ont échoué ; une reprise traitera uniquement ceux-là."""
+
+
 Solver = Callable[[LLMClient, "ExperimentConfig", Problem], Awaitable[dict]]
 
 
@@ -174,9 +179,19 @@ async def run_experiment(
         }
 
     start = time.perf_counter()
+    failures = 0
     with out_path.open("a", encoding="utf-8") as f:
         for i, task in enumerate(asyncio.as_completed([run_one(p) for p in todo]), start=1):
-            record = await task
+            # Une requête en échec (délai dépassé...) ne doit pas arrêter toute l'expérience :
+            # le problème est sauté et sera traité à la reprise.
+            try:
+                record = await task
+            except Exception as exc:
+                failures += 1
+                logger.warning(
+                    "[%d/%d] problème sauté (%s : %s)", i, len(todo), type(exc).__name__, exc
+                )
+                continue
             f.write(json.dumps(record, ensure_ascii=False) + "\n")
             f.flush()
             correct = sum(c["correct"] for c in record["calls"])
@@ -189,4 +204,6 @@ async def run_experiment(
                 len(record["calls"]),
                 time.perf_counter() - start,
             )
+    if failures:
+        raise ExperimentIncomplete(f"{config.name} : {failures} problème(s) à reprendre")
     return len(todo)
